@@ -2,11 +2,10 @@ package routes
 
 import (
 	"gazes_ssr/internal"
-	"io/fs"
 	"net/http"
 )
 
-func HistoryHandler(w http.ResponseWriter, r *http.Request, fsys fs.FS) {
+func HistoryHandler(w http.ResponseWriter, r *http.Request, fsys internal.HtmlAndMeta) {
 	w.Header().Set("Content-Type", "text/html")
 
 	name := "Gazes - Historique"

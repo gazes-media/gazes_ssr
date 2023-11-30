@@ -3,13 +3,12 @@ package routes
 import (
 	"errors"
 	"gazes_ssr/internal"
-	"io/fs"
 	"log"
 	"net/http"
 	"strconv"
 )
 
-func EpisodeHandler(w http.ResponseWriter, r *http.Request, id, ep string, fsys fs.FS) {
+func EpisodeHandler(w http.ResponseWriter, r *http.Request, id, ep string, fsys internal.HtmlAndMeta) {
 	w.Header().Set("Content-Type", "text/html")
 
 	// before returning the html, we need to replace the {{meta}} with the actual metadata

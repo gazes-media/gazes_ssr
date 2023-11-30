@@ -1,17 +1,22 @@
 package internal
 
 import (
-	"io/fs"
+	"embed"
 	"strings"
 )
 
-func ReplaceHtml(title, description, image, tags string, fsys fs.FS) []byte {
-	html, err := fs.ReadFile(fsys, "index.html")
+type HtmlAndMeta struct {
+	Html     embed.FS
+	Meta     embed.FS
+	NotFound embed.FS
+}
+
+func ReplaceHtml(title, description, image, tags string, metas HtmlAndMeta) []byte {
+	html, err := metas.Html.ReadFile("public/index.html")
 	if err != nil {
 		return []byte("No html file found")
 	}
-
-	meta, err := fs.ReadFile(fsys, "meta.html")
+	meta, err := metas.Meta.ReadFile("public/meta.html")
 	if err != nil {
 		return []byte("")
 	}

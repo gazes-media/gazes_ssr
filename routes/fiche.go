@@ -3,11 +3,10 @@ package routes
 import (
 	"encoding/json"
 	"gazes_ssr/internal"
-	"io/fs"
 	"net/http"
 )
 
-func AnimeHandler(w http.ResponseWriter, r *http.Request, id string, fsys fs.FS) {
+func AnimeHandler(w http.ResponseWriter, r *http.Request, id string, fsys internal.HtmlAndMeta) {
 	w.Header().Set("Content-Type", "text/html")
 	response, err := getAnime(id)
 	if err != nil {
