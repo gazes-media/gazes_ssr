@@ -59,7 +59,7 @@ func main() {
 			routes.NotFoundHandler(w, r, fsys)
 			return
 		}
-		routes.AnimeHandler(w, r,id, fsys)
+		routes.AnimeHandler(w, r, id, fsys)
 	}))
 
 	router.Handle("/anime/{id}/episode/{episode}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func main() {
 			routes.NotFoundHandler(w, r, fsys)
 			return
 		}
-		routes.EpisodeHandler(w, r,id, episode, fsys)
+		routes.EpisodeHandler(w, r, id, episode, fsys)
 	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
@@ -81,5 +81,8 @@ func main() {
 		Handler: router,
 	}
 	log.Println("Listening on port " + port)
-	server.ListenAndServe()
+	err := server.ListenAndServe()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
