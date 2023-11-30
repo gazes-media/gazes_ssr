@@ -1,12 +1,11 @@
 package routes
 
 import (
-	"io/fs"
-	"net/http"
 	"gazes_ssr/internal"
+	"net/http"
 )
 
-func LatestHandler(w http.ResponseWriter, r *http.Request, fsys fs.FS) {
+func LatestHandler(w http.ResponseWriter, r *http.Request, fsys internal.HtmlAndMeta) {
 	w.Header().Set("Content-Type", "text/html")
 
 	name := "Gazes - Dernières sorties"

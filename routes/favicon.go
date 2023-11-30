@@ -3,7 +3,9 @@ package routes
 import (
 	"io/fs"
 	"net/http"
+	"embed"
 )
+var ico embed.FS
 
 func FaviconHandler(w http.ResponseWriter, r *http.Request, fsys fs.FS) {
 	w.Header().Set("Content-Type", "image/x-icon")
