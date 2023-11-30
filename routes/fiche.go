@@ -2,6 +2,7 @@ package routes
 
 import (
 	"encoding/json"
+	"errors"
 	"gazes_ssr/internal"
 	"net/http"
 )
@@ -30,6 +31,9 @@ func getAnime(id string) (*JsonResponse, error) {
 	err = json.NewDecoder(data.Body).Decode(&response)
 	if err != nil {
 		return nil, err
+	}
+	if !response.Success {
+		return nil, errors.New("Anime not found")
 	}
 	return &response, nil
 }
