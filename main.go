@@ -93,7 +93,7 @@ func main() {
 	})
 
 	server := &http.Server{
-		Addr:    "127.0.0.1:" + port,
+		Addr:    "0.0.0.0:" + port,
 		Handler: router,
 	}
 	log.Println("Listening on port " + port)
