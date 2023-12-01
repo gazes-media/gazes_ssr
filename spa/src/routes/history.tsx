@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import Shell from "../components/Shell";
 import { BackgroundImage, Grid, Paper, em, Text, Center, Button, Badge } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { StoreContext } from "../Context/MainContext";
 import { Anime, LatestEpisode, latest } from "../utils/apiFetcher";
 import { analytics } from "../utils/database";
@@ -42,7 +42,7 @@ function LatestComponent() {
     }
         , [localStorage.getItem("animeList")])
 
-    if (animes.length > 0) {
+    if (animes.length > 0 && historyWatched.length > 0) {
         return (
             <div>
                 <Grid align="flex-start" justify="center" style={{
@@ -84,8 +84,19 @@ function LatestComponent() {
         return (
             <Center style={{ height: "100%" }}>
                 <Text size="xl" style={{ color: 'white', fontSize: "1.5rem", marginTop: "5px", fontWeight: "bold", lineHeight: "2rem" }}>
-                    Connectez-vous pour voir votre historique
-                </Text>
+                    Ca semble un peu vide ici...                
+                 </Text>
+                 <Center style={{ height: "100%" }}>
+                    {animes.length > 0 ? (
+                        <Link to={`/anime/${Math.floor(animes.length * Math.random())}/episode/1`}>
+                            <Button size="xs" variant="outline" color="blue" style={{ marginLeft: "10px" }}>Découvrir un animé</Button>
+                        </Link>
+                    ) : (
+                        <Link to={`/search`}>
+                            <Button size="xs" variant="outline" color="blue" style={{ marginLeft: "10px" }}>Rechercher un anime</Button>
+                        </Link>
+                    )}
+                </Center>
             </Center>
         )
     }
