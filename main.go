@@ -1,8 +1,6 @@
 package main
 
 import (
-	"embed"
-	"gazes_ssr/internal"
 	"gazes_ssr/routes"
 	"io/fs"
 	"log"
@@ -16,80 +14,60 @@ var fsys fs.FS
 var static http.Handler
 var port string = "5454"
 
-//go:embed public/assets
-var content embed.FS
-
-//go:embed public/favicon.ico
-var favicon embed.FS
-
-//go:embed public/sitemap.xml
-var sitemap embed.FS
-
-//go:embed public/index.html
-var f embed.FS
-
-//go:embed public/meta.html
-var metaf embed.FS
-
-//go:embed public/404.html
-var notfound embed.FS
-
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	staticFs := fs.FS(content)
-	assets, err := fs.Sub(staticFs, "public/assets")
-	if err != nil {
-		log.Fatal(err)
-	}
-	static = http.FileServer(http.FS(assets))
+	static = http.FileServer(http.Dir("./public/assets"))
 
 }
 
 func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets/", static))
-
-	router.Handle("/favicon.ico", http.FileServer(http.FS(favicon)))
-	router.Handle("/sitemap.xml", http.FileServer(http.FS(sitemap)))
+	router.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/favicon.ico")
+	})
+	router.HandleFunc("/sitemap.xml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/sitemap.xml")
+	})
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		routes.NotFoundHandler(w, r, giveHtmlAndMeta())
+		routes.NotFoundHandler(w, r)
 	})
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		routes.MasterHandler(w, r, giveHtmlAndMeta())
+		routes.MasterHandler(w, r)
 	})
 	router.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-		routes.SearchHandler(w, r, giveHtmlAndMeta())
+		routes.SearchHandler(w, r)
 	})
 
 	router.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
-		routes.LatestHandler(w, r, giveHtmlAndMeta())
+		routes.LatestHandler(w, r)
 	})
 
 	router.Handle("/anime/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 		if id == "" {
-			routes.NotFoundHandler(w, r, giveHtmlAndMeta())
+			routes.NotFoundHandler(w, r)
 			return
 		}
-		routes.AnimeHandler(w, r, id, giveHtmlAndMeta())
+		routes.AnimeHandler(w, r, id)
 	}))
 
 	router.Handle("/anime/{id}/episode/{episode}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 		episode := mux.Vars(r)["episode"]
 		if id == "" || episode == "" {
-			routes.NotFoundHandler(w, r, giveHtmlAndMeta())
+			routes.NotFoundHandler(w, r)
 			return
 		}
-		routes.EpisodeHandler(w, r, id, episode, giveHtmlAndMeta())
+		routes.EpisodeHandler(w, r, id, episode)
 	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
-		routes.HistoryHandler(w, r, giveHtmlAndMeta())
+		routes.HistoryHandler(w, r)
 	})
 
 	server := &http.Server{
@@ -100,14 +78,5 @@ func main() {
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
-	}
-}
-
-func giveHtmlAndMeta() internal.HtmlAndMeta {
-	return internal.HtmlAndMeta{
-		Html:     f,
-		Meta:     metaf,
-		NotFound: notfound,
-		VideoUrl: "",
 	}
 }
