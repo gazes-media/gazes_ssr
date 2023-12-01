@@ -108,5 +108,6 @@ func giveHtmlAndMeta() internal.HtmlAndMeta {
 		Html:     f,
 		Meta:     metaf,
 		NotFound: notfound,
+		VideoUrl: "",
 	}
 }
