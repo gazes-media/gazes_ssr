@@ -67,6 +67,6 @@ COPY --from=build /bin/server /bin/
 ADD public /bin/public
 # Expose the port that the application listens on.
 EXPOSE 5454
-
+WORKDIR /bin
 # What the container should run when it is started.
-ENTRYPOINT [ "/bin/server" ]
+ENTRYPOINT [ "./server" ]
