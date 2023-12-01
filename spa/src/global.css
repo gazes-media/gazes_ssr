@@ -1,0 +1,24 @@
+
+.overflow-hidden{
+    width: auto;
+    height: 100vh;
+    overflow:hidden;
+}
+
+
+media-player{
+  --media-time-color: white;
+  --media-time-bg: rgba(0,0,0,0.9)
+  --media-button-size:40px;
+  --media-button-icon-size: 28px;
+}
+
+.media-ui{
+  background-color: rgba(0,0,0,0.1);
+}
+
+media-player:not([data-can-play]) .media-ui,
+media-player[data-user-idle] .media-ui {
+  opacity: 0;
+  pointer-events: none;
+}
