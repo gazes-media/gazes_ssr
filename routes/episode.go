@@ -28,7 +28,15 @@ func EpisodeHandler(w http.ResponseWriter, r *http.Request, id, ep string, fsys 
 	image := episode.UrlImage
 	description := "Regarder l'épisode " + strconv.Itoa(episode.Num) + " de " + datas.Data.Title + " en streaming VOSTFR sur Gazes"
 	keywords := "Animes, Streaming, Anime, Manga, Scan, Scans, Scans VF, Scans VOSTFR, Scans FR, Naruto, One Piece, Bleach, Fairy Tail, Dragon Ball Super, Dragon Ball Z, Dragon Ball GT, Dragon Ball, Dragon Ball Kai, Dragon Ball Z Kai, Dragon Ball Z Kai The Final Chapters, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR, Dragon Ball Z Kai VF, Dragon Ball Z Kai VOSTFR, Dragon Ball Z Kai FR, Dragon Ball Super VF, Dragon Ball Super VOSTFR, Dragon Ball Super FR, Dragon Ball GT VF, Dragon Ball GT VOSTFR, Dragon Ball GT FR, Dragon Ball VF, Dragon Ball VOSTFR, Dragon Ball FR, Dragon Ball Z VF, Dragon Ball Z VOSTFR, Dragon Ball Z FR, Dragon Ball Z Kai VF, Dragon Ball Z Kai VOSTFR, Dragon Ball Z Kai FR, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR"
-	w.Write(internal.ReplaceHtml(name, description, image, keywords, fsys))
+	fsys.VideoUrl = "https://gazes.fr/anime/" + id + "/episode/" + ep
+
+	metaData := internal.HtmlAndMeta{
+		Html:     fsys.Html,
+		Meta:     fsys.Meta,
+		NotFound: fsys.NotFound,
+		VideoUrl: fsys.VideoUrl,
+	}
+	w.Write(internal.ReplaceHtml(name, description, image, keywords, metaData))
 }
 
 func getEpisode(anime Fiche, ep string) (Episode, error) {
