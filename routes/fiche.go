@@ -3,22 +3,21 @@ package routes
 import (
 	"encoding/json"
 	"errors"
-	"gazes_ssr/internal"
+	"gazes_ssr/functions"
 	"net/http"
 )
 
-func AnimeHandler(w http.ResponseWriter, r *http.Request, id string, fsys internal.HtmlAndMeta) {
-	w.Header().Set("Content-Type", "text/html")
+func AnimeHandler(w http.ResponseWriter, r *http.Request, id string) {
 	response, err := getAnime(id)
 	if err != nil {
-		NotFoundHandler(w, r, fsys)
+		NotFoundHandler(w, r)
 		return
 	}
+	w.Header().Set("Content-Type", "text/html")
 	name := response.Data.Title + " - Gazes"
 	image := response.Data.UrlImage
 	description := response.Data.Synopsis
-	keywords := "Animes, Streaming, Anime, Manga, Scan, Scans, Scans VF, Scans VOSTFR, Scans FR, Naruto, One Piece, Bleach, Fairy Tail, Dragon Ball Super, Dragon Ball Z, Dragon Ball GT, Dragon Ball, Dragon Ball Kai, Dragon Ball Z Kai, Dragon Ball Z Kai The Final Chapters, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR, Dragon Ball Z Kai VF, Dragon Ball Z Kai VOSTFR, Dragon Ball Z Kai FR, Dragon Ball Super VF, Dragon Ball Super VOSTFR, Dragon Ball Super FR, Dragon Ball GT VF, Dragon Ball GT VOSTFR, Dragon Ball GT FR, Dragon Ball VF, Dragon Ball VOSTFR, Dragon Ball FR, Dragon Ball Z VF, Dragon Ball Z VOSTFR, Dragon Ball Z FR, Dragon Ball Z Kai VF, Dragon Ball Z Kai VOSTFR, Dragon Ball Z Kai FR, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR"
-	w.Write(internal.ReplaceHtml(name, description, image, keywords, fsys))
+	w.Write(functions.ReplaceHtml(name, description, image, functions.Keywords, ""))
 }
 
 func getAnime(id string) (*JsonResponse, error) {
