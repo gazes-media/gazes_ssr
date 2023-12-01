@@ -1,25 +1,25 @@
-<meta name="description" content="{{description}}" />
-<meta name="keywords" content="{{tags}}" />
+<meta name="description" content="{{.Description}}" />
+<meta name="keywords" content="{{.Tags}}" />
 <meta name="author" content="Gazes" />
 <meta name="robots" content="index, follow" />
-<meta name="og:title" content="{{title}}" />
-<meta name="og:description" content="{{description}}" />
-<meta name="og:image" content="{{image}}" />
-<meta name="og:image:secure_url" content="{{image}}" />
-<meta name="og:image:alt" content="{{title}}" />
-<meta name="og:keywords" content="{{tags}}" />
+<meta name="og:title" content="{{.Title}}" />
+<meta name="og:description" content="{{.Description}}" />
+<meta name="og:image" content="{{.Image}}" />
+<meta name="og:image:secure_url" content="{{.Image}}" />
+<meta name="og:image:alt" content="{{.Title}}" />
+<meta name="og:keywords" content="{{.Tags}}" />
 <meta name="og:url" content="https://gazes.fr" />
 <meta name="og:site_name" content="Gazes" />
 <meta name="og:type" content="video" />
 <meta name="og:locale" content="fr_FR" />
-{{meta_video}}
+{{.VideoUri}}
 <meta name="twitter:card" content="player" />
 <meta name="twitter:site" content="@Gazes" />
-<meta name="twitter:title" content="{{title}}" />
-<meta name="twitter:description" content="{{description}}" />
-<meta name="twitter:image" content="{{image}}" />
+<meta name="twitter:title" content="{{.Title}}" />
+<meta name="twitter:description" content="{{.Description}}" />
+<meta name="twitter:image" content="{{.Image}}" />
 <meta name="twitter:url" content="https://gazes.fr" />
 <meta name="twitter:creator" content="@Gazes" />
 <meta name="twitter:domain" content="gazes.fr" />
 <meta name="twitter:widgets:csp" content="on" />
-<title>{{title}}</title>
+<title>{{.Title}}</title>
