@@ -13,7 +13,7 @@ const (
 	Keywords    = "Animes, Streaming, Anime, Manga, Scan, Scans, Scans VF, Scans VOSTFR, Scans FR, Naruto, One Piece, Bleach, Fairy Tail, Dragon Ball Super, Dragon Ball Z, Dragon Ball GT, Dragon Ball, Dragon Ball Kai, Dragon Ball Z Kai, Dragon Ball Z Kai The Final Chapters, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR, Dragon Ball Z Kai VF, Dragon Ball Z Kai VOSTFR, Dragon Ball Z Kai FR, Dragon Ball Super VF, Dragon Ball Super VOSTFR, Dragon Ball Super FR, Dragon Ball GT VF, Dragon Ball GT VOSTFR, Dragon Ball GT FR, Dragon Ball VF, Dragon Ball VOSTFR, Dragon Ball FR, Dragon Ball Z VF, Dragon Ball Z VOSTFR, Dragon Ball Z FR, Dragon Ball Z Kai VF, Dragon Ball Z Kai VOSTFR, Dragon Ball Z Kai FR, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR, Dragon Ball Z Kai The Final Chapters VF, Dragon Ball Z Kai The Final Chapters VOSTFR, Dragon Ball Z Kai The Final Chapters FR"
 )
 
-func getWorkdir() string {
+func GetWorkdir() string {
 	workdir, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -25,7 +25,7 @@ func GetFs(workdir string) fs.FS {
 	return os.DirFS(workdir + "/public")
 }
 
-var Fsys = GetFs(getWorkdir())
+var Fsys = GetFs(GetWorkdir())
 
 func getMetaTemplate() *template.Template {
 	meta, err := template.ParseFS(Fsys, "meta.html")
@@ -47,18 +47,20 @@ func ReplaceHtml(title, description, image, tags, videoUri string) []byte {
 	meta := getMetaTemplate()
 
 	var metaTags strings.Builder
+	videoMeta := template.HTML(metaVideo(videoUri))
+
 	meta.Execute(&metaTags, struct {
 		Title       string
 		Description string
 		Image       string
 		Tags        string
-		VideoUri    string
+		VideoUri    template.HTML
 	}{
 		Title:       title,
 		Description: description,
 		Image:       image,
 		Tags:        tags,
-		VideoUri:    metaVideo(videoUri),
+		VideoUri:    videoMeta,
 	})
 
 	html := getHtmlTemplate()
