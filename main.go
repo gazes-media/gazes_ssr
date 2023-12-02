@@ -25,7 +25,10 @@ func init() {
 
 func main() {
 	router := mux.NewRouter()
-	router.PathPrefix("/assets").Handler(http.StripPrefix("/assets/", static))
+	router.PathPrefix("/assets").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+		http.StripPrefix("/assets", static).ServeHTTP(w, r)
+	})
 	router.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./public/favicon.ico")
 	})

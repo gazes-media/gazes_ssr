@@ -23,6 +23,8 @@ func EpisodeHandler(w http.ResponseWriter, r *http.Request, id, ep string) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
+	w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 	name := "Episode " + strconv.Itoa(episode.Num) + " - " + episode.Title + " - Gazes"
 	image := episode.UrlImage
 	description := "Regarder l'épisode " + strconv.Itoa(episode.Num) + " de " + datas.Data.Title + " en streaming VOSTFR sur Gazes"

@@ -1,20 +1,22 @@
 import 'vidstack/styles/defaults.css';
 import { MediaOutlet, MediaPlayer, MediaGesture, MediaPoster, MediaBufferingIndicator, MediaTimeSlider, MediaPlayButton, MediaSeekButton, MediaPIPButton, MediaTime, MediaMenu, MediaQualityMenuButton, MediaFullscreenButton, MediaMenuItems, MediaQualityMenuItems, MediaMenuButton, MediaPlaybackRateMenuButton, MediaPlaybackRateMenuItems, MediaMuteButton } from '@vidstack/react';
 import { EpisodeWithVideo, FicheAnime, getEpisodeAnimeId, getFicheAnime, seasonal, seasonalAnimes } from '../utils/apiFetcher';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../global.css';
-import { IconArrowRight, IconHome, IconMaximize, IconMinimize, IconMovie, IconPictureInPictureOff, IconPictureInPictureOn, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBackFilled, IconPlayerSkipForwardFilled, IconPlayerStop, IconSearch, IconSettings, IconVolume, IconVolume2, IconVolumeOff } from '@tabler/icons-react';
-import { ActionIcon, Button, Center, Flex, Image, Paper, Slider, Stack, Text, em, rem } from '@mantine/core';
+import { IconArrowRight, IconDownload, IconHome, IconMaximize, IconMinimize, IconMovie, IconPictureInPictureOff, IconPictureInPictureOn, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBackFilled, IconPlayerSkipForwardFilled, IconPlayerStop, IconSearch, IconSettings, IconVolume, IconVolume2, IconVolumeOff } from '@tabler/icons-react';
+import { Modal, ActionIcon, Button, Center, Flex, Image, Paper, Slider, Stack, Text, em, rem } from '@mantine/core';
 import { MediaPlayerElement, isHLSProvider } from 'vidstack';
 import { Spotlight, SpotlightActionData, spotlight } from '@mantine/spotlight';
-import { useMediaQuery } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { convertEpisodeToNumber, spliceText } from '../utils/util';
 import { removeAnime, setAnime } from '../utils/storage';
 import { StoreContext } from '../Context/MainContext';
 import { Helmet } from 'react-helmet';
 import { logEvent } from 'firebase/analytics';
 import { analytics } from '../utils/database';
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 function formatDuree(secondes: number) {
     const heures = Math.floor(secondes / 3600);
     const minutes = Math.floor((secondes % 3600) / 60);
@@ -47,6 +49,9 @@ export default function Player() {
     let [castPlaying, setCastPlaying] = useState(false);
     let [castDuration, setCastDuration] = useState(0);
     let [episode, setEpisode] = useState<EpisodeWithVideo | null>(null);
+    let ffmpegRef = useRef<FFmpeg>(new FFmpeg());
+    const [opened, { open, close }] = useDisclosure(false);
+    const [dlProgress, setDlProgress] = useState("Progress...");
     function onProviderChange(event: any) {
         const provider = event.detail;
         if (isHLSProvider(provider)) {
@@ -57,16 +62,113 @@ export default function Player() {
         }
     }
 
+    function downloadEpisode() {
+        // create ffmpeg
+        let video = document.querySelector("video");
+        if (video) {
+            video.pause();
+        }
+        open();
+        const ffmpeg = ffmpegRef.current;
+        const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
+        // load ffmpeg
+        if(ffmpeg.loaded) return;
+        (async() => {
+            await ffmpeg.load({
+                coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+                wasmURL: await toBlobURL(
+                  `${baseURL}/ffmpeg-core.wasm`,
+                  "application/wasm"
+                ),
+                workerURL: await toBlobURL(
+                  `${baseURL}/ffmpeg-core.worker.js`,
+                  "text/javascript"
+                ),
+              });
+          
+        ffmpeg.on("log", (log) => setDlProgress(log.message));
+        // get the video url
+        const url = episode?.vostfr.videoUri;
+        if (!url) return;
+        fetch(url)
+            .then(response => response.text())
+            .then(d2 => {
+                // the file is an m3u8 playlist with the video m3u8 url
+                const lines = d2.split("\n");
+                const m3u8Url = [];
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    if (line.includes("m3u8")) {
+                        m3u8Url.push(line);
+                    }
+                }
+                // get the last m3u8 url
+                const lastM3u8Url = m3u8Url[m3u8Url.length - 1];
+                // fetch the video m3u8 file and get the text content
+                fetch(lastM3u8Url)
+                    .then(response => response.text())
+                    .then(async (data) => {
+                        // the file is an m3u8 playlist with the video ts urls
+                        let m3u8ForFFmpeg = data;
+                        const lines = data.split("\n");
+                        // load each ts file into ffmpeg 
+                        const URLSList = [];
+                        for (let i = 0; i < lines.length; i++) {
+                            const line = lines[i];
+                            if (line.includes("https")) {
+                                URLSList.push(line);
+                            }
+                        }
+                        // push each ts file into ffmpeg
+                        for (let i = 0; i < URLSList.length; i++) {
+
+                            const url = URLSList[i];
+                            ffmpeg.writeFile('video' + i + '.ts', await fetchFile(url));
+                            setDlProgress(((i + 1) / URLSList.length * 100).toFixed(2) + "%" + " - " + (i + 1) + "/" + URLSList.length);
+                            // replace the ts url with the local ts file
+                            m3u8ForFFmpeg = m3u8ForFFmpeg.replace(url, 'video' + i + '.ts');
+                        }
+
+                        // write the m3u8 file
+                        ffmpeg.writeFile('index.m3u8', m3u8ForFFmpeg);
+                        // run ffmpeg
+                        await ffmpeg.exec(['-i', 'index.m3u8', "-bsf:a", "aac_adtstoasc", '-c', 'copy', 'output.mp4']);
+                        setDlProgress("100% - " + URLSList.length + "/" + URLSList.length + " - Transcoding...");
+                        // read the result
+                        const dataVideo = await ffmpeg.readFile('output.mp4');
+                        // create a URL
+                        const videoURL = URL.createObjectURL(new Blob([(dataVideo as { buffer: BlobPart}).buffer], { type: 'video/mp4' }));
+                        // add a link that launch a download of the video
+                        const a = document.createElement('a');
+                        a.download = 'video.mp4';
+                        a.href = videoURL;
+                        a.textContent = 'Download the video';
+                        a.id = 'download';
+                        document.body.appendChild(a);
+                        document.getElementById('download')?.click();
+                        // release every file from the virtual file system
+                        ffmpeg.unmount('output.mp4');
+                        ffmpeg.unmount('index.m3u8');
+                        for (let i = 0; i < URLSList.length; i++) {
+                            ffmpeg.unmount('video' + i + '.ts');
+                        }
+                        // release ffmpeg
+                        await ffmpeg.terminate();
+                    });
+            });
+        })();
+    }
+
     function episodeNotFound(id: string, _ep: number) {
         return navigate("/anime/" + id);
     }
 
     useEffect(() => {
         setTimeout(() => {
-            logEvent(analytics,'page_view',{
-               page_title: document.title,
-               page_location: location.href,
-               page_path: location.pathname
+            logEvent(analytics, 'page_view', {
+                page_title: document.title,
+                page_location: location.href,
+                page_path: location.pathname
             })
         }, 700);
     }, [])
@@ -454,6 +556,15 @@ export default function Player() {
                     <meta property='og:keywords' content={`${fiche.others}, ${fiche.title}, ${fiche.title} ${episode.vostfr.num}, ${fiche.title} ${episode.vostfr.num} vostfr, ${fiche.title} ${episode.vostfr.num} vf`} />
                     <meta property='keywords' content={`${fiche.others}, ${fiche.title}, ${fiche.title} ${episode.vostfr.num}, ${fiche.title} ${episode.vostfr.num} vostfr, ${fiche.title} ${episode.vostfr.num} vf`} />
                 </Helmet>
+                <Modal opened={opened} onClose={close} title="Download Progress">
+                    <Center>
+                        <Text size="xl" style={{ color: 'white', fontSize: "1.5rem", marginTop: "5px", fontWeight: "bold", lineHeight: "2rem" }}>
+                            Téléchargement en cours <br/> {dlProgress}
+                        </Text>
+                    </Center>
+                    <Button onClick={close} variant="outline" color="blue" style={{ marginTop: "10px" }}>Fermer la modale</Button>
+                </Modal>
+
                 <MediaPlayer
                     onProviderChange={onProviderChange}
                     title={fiche.title + "- Episode " + episode.vostfr.num}
@@ -546,6 +657,13 @@ export default function Player() {
                                 }}
                             >
                                 <IconMovie />
+                            </ActionIcon>
+                            <ActionIcon
+                                variant="transparent"
+                                color="white"
+                                onClick={downloadEpisode}
+                            >
+                                <IconDownload />
                             </ActionIcon>
                             <ActionIcon
                                 variant="transparent"
