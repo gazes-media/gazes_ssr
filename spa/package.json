@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.7",
+    "@ffmpeg/util": "^0.12.1",
     "@firebase/auth": "^1.5.0",
     "@mantine/carousel": "^7.0.0",
     "@mantine/core": "^7.0.0",
