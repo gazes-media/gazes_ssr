@@ -76,12 +76,10 @@ export default function Player() {
         // check if vostfr is available
         let playListVostfr = await getM3u8PlayList(episode?.vostfr?.videoUri);
         playlist.push(playListVostfr);
-        console.log(playListVostfr);
 
         if (episode?.vf) {
             let playListVf = await getM3u8PlayList(episode.vf.videoUri);
             playlist.push(playListVf);
-            console.log(playListVf)
         }
 
         async function getM3u8PlayList(url?: string) {
@@ -390,13 +388,11 @@ export default function Player() {
         if (videoPlayer) {
             videoPlayer.addEventListener("play", play);
             videoPlayer.addEventListener("timeupdate", timeUpdate);
-            videoPlayer.addEventListener("pause", paused);
         }
 
         return () => {
             if (videoPlayer) {
                 videoPlayer.removeEventListener("timeupdate", timeUpdate);
-                videoPlayer.removeEventListener("pause", paused);
             }
             if (window.cast) {
                 window.cast.framework.CastContext.getInstance().getCurrentSession()?.getMediaSession()?.stop(new chrome.cast.media.StopRequest(), () => {
@@ -415,22 +411,6 @@ export default function Player() {
         videoPlayer.currentTime = currentTime;
     }, [currentLangue])
 
-    async function paused() {
-        try {
-            if (fiche && episode) {
-                const ipc = require('electron').ipcRenderer;
-                ipc.send('episodePaused', {
-                    title: fiche.title,
-                    episode: episode.vostfr.num,
-                    image_url: fiche.url_image,
-                    url: location.href,
-                });
-            }
-        } catch (e) {
-            return false;
-        }
-    }
-
     async function timeUpdate() {
         let videoElement = document.querySelector("video");
         if (videoElement && episode) {
@@ -442,18 +422,6 @@ export default function Player() {
                     time: videoElement.currentTime,
                     duration: videoElement.duration
                 })
-                try {
-                    const ipc = require('electron').ipcRenderer;
-                    ipc.send('episodeUpdated', {
-                        title: fiche.title,
-                        episode: episode.vostfr.num,
-                        duration: (videoElement.duration - videoElement.currentTime) * 1000,
-                        image_url: fiche.url_image,
-                        url: location.href,
-                    });
-                } catch (e) {
-                    return false;
-                }
 
             }
         }

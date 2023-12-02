@@ -11,11 +11,28 @@
       name="viewport"
       content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
     />
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
     <meta name="theme-color" content="#000000" />
+    <meta name="apple-mobile-web-app-title" content="Gazes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-touch-startup-image" href="/icon/ios/512.png">
+    <meta name="apple-touch-fullscreen" content="yes">
+    <link rel="apple-touch-icon" href="/icon/ios/16.png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/icon/ios/32.png" sizes="32x32" />
+    <link rel="apple-touch-icon" href="/icon/ios/48.png" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/icon/ios/64.png" sizes="64x64" />
+    <link rel="apple-touch-icon" href="/icon/ios/128.png" sizes="128x128" />
+    <link rel="apple-touch-icon" href="/icon/ios/256.png" sizes="256x256" />
+    <link rel="apple-touch-icon" href="/icon/ios/512.png" sizes="512x512" />
+    <link rel="apple-touch-icon" href="/icon/ios/1024.png" sizes="1024x1024" />
     {{.Meta}}
-    <script async type="module" crossorigin src="/assets/index-5eeac63b.js"></script>
-    <link rel="stylesheet" href="/assets/index-43fdcfe6.css">
-  </head>
+    <script id="vite-plugin-pwa:inline-sw">
+      if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' })})}
+    </script>
+    <script async type="module" crossorigin src="/assets/index-9f3bf387.js"></script>
+    <link rel="stylesheet" href="/assets/index-ff040aa9.css">
+  <link rel="manifest" href="/manifest.webmanifest"></head>
   <body style="min-width: 200px;">
     <div id="root"></div>    
     <script src="//www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
