@@ -146,6 +146,9 @@ export default function Player() {
                         a.id = 'download';
                         document.body.appendChild(a);
                         document.getElementById('download')?.click();
+                        setDlProgress("Downloaded to your download folder");
+                        // after we need to remove the newly added button
+                        document.body.removeChild(a)
                         // release every file from the virtual file system
                         ffmpeg.unmount('output.mp4');
                         ffmpeg.unmount('index.m3u8');
