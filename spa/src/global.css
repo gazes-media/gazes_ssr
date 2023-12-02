@@ -2,7 +2,9 @@
 .overflow-hidden{
     width: auto;
     height: 100vh;
-    overflow:hidden;
+    display: flex;
+    justify-content: center; /* Horizontally centers the element */
+    align-items: center;     overflow:hidden;
 }
 
 

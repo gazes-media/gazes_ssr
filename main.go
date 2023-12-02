@@ -29,6 +29,14 @@ func main() {
 		w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 		http.StripPrefix("/assets", static).ServeHTTP(w, r)
 	})
+	router.PathPrefix("/robots.txt").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/robots.txt")
+	})
+	router.PathPrefix("/manifest.webmanifest").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/manifest.webmanifest")
+	})
+	router.PathPrefix("/icon").Handler(http.StripPrefix("/icon", http.FileServer(http.Dir("./public/icon"))))
+
 	router.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./public/favicon.ico")
 	})
@@ -40,17 +48,27 @@ func main() {
 	})
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.MasterHandler(w, r)
 	})
 	router.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.SearchHandler(w, r)
 	})
 
+	router.HandleFunc("/workbox-cd63daf5.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/workbox-cd63daf5.js")
+	})
+	router.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./public/sw.js")
+	})
 	router.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.LatestHandler(w, r)
 	})
 
 	router.Handle("/anime/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
 		id := mux.Vars(r)["id"]
 		if id == "" {
 			routes.NotFoundHandler(w, r)
@@ -60,6 +78,7 @@ func main() {
 	}))
 
 	router.Handle("/anime/{id}/episode/{episode}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
 		id := mux.Vars(r)["id"]
 		episode := mux.Vars(r)["episode"]
 		if id == "" || episode == "" {
@@ -70,6 +89,7 @@ func main() {
 	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.HistoryHandler(w, r)
 	})
 
