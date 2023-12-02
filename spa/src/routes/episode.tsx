@@ -5,7 +5,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../global.css';
 import { IconArrowRight, IconDownload, IconHome, IconMaximize, IconMinimize, IconMovie, IconPictureInPictureOff, IconPictureInPictureOn, IconPlayerPause, IconPlayerPlay, IconPlayerSkipBackFilled, IconPlayerSkipForwardFilled, IconPlayerStop, IconSearch, IconSettings, IconVolume, IconVolume2, IconVolumeOff } from '@tabler/icons-react';
-import { Modal, ActionIcon, Button, Center, Flex, Image, Paper, Slider, Stack, Text, em, rem } from '@mantine/core';
+import { Modal, ActionIcon, Button, Center, Flex, Image, Paper, Slider, Stack, Text, em, rem, Select } from '@mantine/core';
 import { MediaPlayerElement, isHLSProvider } from 'vidstack';
 import { Spotlight, SpotlightActionData, spotlight } from '@mantine/spotlight';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
@@ -35,6 +35,13 @@ function formatDuree(secondes: number) {
 
 let timeMoved = false;
 
+interface m3u8PlayList {
+    quality: {
+        [key: string]: string
+    }
+    url: string;
+}
+
 export default function Player() {
     const navigate = useNavigate();
     let isMobile = useMediaQuery(`(max-width: ${em(750)})`);
@@ -51,7 +58,8 @@ export default function Player() {
     let [episode, setEpisode] = useState<EpisodeWithVideo | null>(null);
     let ffmpegRef = useRef<FFmpeg>(new FFmpeg());
     const [opened, { open, close }] = useDisclosure(false);
-    const [dlProgress, setDlProgress] = useState("Progress...");
+    const [dlProgress, setDlProgress] = useState("notloaded");
+    const [getEpisodeVersion, setEpisodeVersion] = useState<Array<m3u8PlayList[]>>([]);
     function onProviderChange(event: any) {
         const provider = event.detail;
         if (isHLSProvider(provider)) {
@@ -62,104 +70,123 @@ export default function Player() {
         }
     }
 
-    function downloadEpisode() {
+    async function getEpisodeVersions(): Promise<Array<m3u8PlayList[]>> {
+
+        let playlist: Array<m3u8PlayList[]> = [];        // check if vf is available
+        // check if vostfr is available
+        let playListVostfr = await getM3u8PlayList(episode?.vostfr?.videoUri);
+        playlist.push(playListVostfr);
+        console.log(playListVostfr);
+
+        if (episode?.vf) {
+            let playListVf = await getM3u8PlayList(episode.vf.videoUri);
+            playlist.push(playListVf);
+            console.log(playListVf)
+        }
+
+        async function getM3u8PlayList(url?: string) {
+            if (!url) return [];
+            let response = await fetch(url)
+            let d2 = await response.text()
+            const lines = d2.split("\n");
+            const m3u8Url: m3u8PlayList[] = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (line.includes("m3u8")) {
+                    m3u8Url.push({
+                        quality: {
+                            quality: lines[i -1].split("RESOLUTION=")[1].split(",")[0],
+                            bandwidth: lines[i -1].split("BANDWIDTH=")[1].split(",")[0],
+                            name: lines[i -1].split("NAME=")[1].split(",")[0].replace(/"/g, '')
+                        },
+                        url: line
+                    });
+                }
+            }
+            return m3u8Url;
+        }
+        return playlist;
+    }
+
+    function downloadEpisode(url: string) {
         // create ffmpeg
         let video = document.querySelector("video");
         if (video) {
             video.pause();
         }
-        open();
         const ffmpeg = ffmpegRef.current;
         const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
         // load ffmpeg
-        if(!window.crossOriginIsolated) return setDlProgress("Please enable reload the page, crossOriginIsolated is not enabled");
-        if(ffmpeg.loaded) return;
-        (async() => {
+        if (!window.crossOriginIsolated) return setDlProgress("Please enable reload the page, crossOriginIsolated is not enabled");
+        if (ffmpeg.loaded) return;
+        (async () => {
             await ffmpeg.load({
                 coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
                 wasmURL: await toBlobURL(
-                  `${baseURL}/ffmpeg-core.wasm`,
-                  "application/wasm"
+                    `${baseURL}/ffmpeg-core.wasm`,
+                    "application/wasm"
                 ),
                 workerURL: await toBlobURL(
-                  `${baseURL}/ffmpeg-core.worker.js`,
-                  "text/javascript"
+                    `${baseURL}/ffmpeg-core.worker.js`,
+                    "text/javascript"
                 ),
-              });
-          
-        ffmpeg.on("log", (log) => setDlProgress(log.message));
-        // get the video url
-        const url = episode?.vostfr.videoUri;
-        if (!url) return;
-        fetch(url)
-            .then(response => response.text())
-            .then(d2 => {
-                // the file is an m3u8 playlist with the video m3u8 url
-                const lines = d2.split("\n");
-                const m3u8Url = [];
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i];
-                    if (line.includes("m3u8")) {
-                        m3u8Url.push(line);
-                    }
-                }
-                // get the last m3u8 url
-                const lastM3u8Url = m3u8Url[m3u8Url.length - 1];
-                // fetch the video m3u8 file and get the text content
-                fetch(lastM3u8Url)
-                    .then(response => response.text())
-                    .then(async (data) => {
-                        // the file is an m3u8 playlist with the video ts urls
-                        let m3u8ForFFmpeg = data;
-                        const lines = data.split("\n");
-                        // load each ts file into ffmpeg 
-                        const URLSList = [];
-                        for (let i = 0; i < lines.length; i++) {
-                            const line = lines[i];
-                            if (line.includes("https")) {
-                                URLSList.push(line);
-                            }
-                        }
-                        // push each ts file into ffmpeg
-                        for (let i = 0; i < URLSList.length; i++) {
-
-                            const url = URLSList[i];
-                            ffmpeg.writeFile('video' + i + '.ts', await fetchFile(url));
-                            setDlProgress(((i + 1) / URLSList.length * 100).toFixed(2) + "%" + " - " + (i + 1) + "/" + URLSList.length);
-                            // replace the ts url with the local ts file
-                            m3u8ForFFmpeg = m3u8ForFFmpeg.replace(url, 'video' + i + '.ts');
-                        }
-
-                        // write the m3u8 file
-                        ffmpeg.writeFile('index.m3u8', m3u8ForFFmpeg);
-                        // run ffmpeg
-                        await ffmpeg.exec(['-i', 'index.m3u8', "-bsf:a", "aac_adtstoasc", '-c', 'copy', 'output.mp4']);
-                        setDlProgress("100% - " + URLSList.length + "/" + URLSList.length + " - Transcoding...");
-                        // read the result
-                        const dataVideo = await ffmpeg.readFile('output.mp4');
-                        // create a URL
-                        const videoURL = URL.createObjectURL(new Blob([(dataVideo as { buffer: BlobPart}).buffer], { type: 'video/mp4' }));
-                        // add a link that launch a download of the video
-                        const a = document.createElement('a');
-                        a.download = 'video.mp4';
-                        a.href = videoURL;
-                        a.textContent = 'Download the video';
-                        a.id = 'download';
-                        document.body.appendChild(a);
-                        document.getElementById('download')?.click();
-                        setDlProgress("Downloaded to your download folder");
-                        // after we need to remove the newly added button
-                        document.body.removeChild(a)
-                        // release every file from the virtual file system
-                        ffmpeg.unmount('output.mp4');
-                        ffmpeg.unmount('index.m3u8');
-                        for (let i = 0; i < URLSList.length; i++) {
-                            ffmpeg.unmount('video' + i + '.ts');
-                        }
-                        // release ffmpeg
-                        await ffmpeg.terminate();
-                    });
             });
+
+            ffmpeg.on("log", (log) => setDlProgress(log.message));
+
+            fetch(url)
+                .then(response => response.text())
+                .then(async (data) => {
+                    // the file is an m3u8 playlist with the video ts urls
+                    let m3u8ForFFmpeg = data;
+                    const lines = data.split("\n");
+                    // load each ts file into ffmpeg 
+                    const URLSList = [];
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (line.includes("https")) {
+                            URLSList.push(line);
+                        }
+                    }
+                    // push each ts file into ffmpeg
+                    for (let i = 0; i < URLSList.length; i++) {
+
+                        const url = URLSList[i];
+                        ffmpeg.writeFile('video' + i + '.ts', await fetchFile(url));
+                        setDlProgress(((i + 1) / URLSList.length * 100).toFixed(2) + "%" + " - " + (i + 1) + "/" + URLSList.length);
+                        // replace the ts url with the local ts file
+                        m3u8ForFFmpeg = m3u8ForFFmpeg.replace(url, 'video' + i + '.ts');
+                    }
+
+                    // write the m3u8 file
+                    ffmpeg.writeFile('index.m3u8', m3u8ForFFmpeg);
+                    // run ffmpeg
+                    await ffmpeg.exec(['-i', 'index.m3u8', "-bsf:a", "aac_adtstoasc", '-c', 'copy', 'output.mp4']);
+                    setDlProgress("100% - " + URLSList.length + "/" + URLSList.length + " - Transcoding...");
+                    // read the result
+                    const dataVideo = await ffmpeg.readFile('output.mp4');
+                    // create a URL
+                    const videoURL = URL.createObjectURL(new Blob([(dataVideo as { buffer: BlobPart }).buffer], { type: 'video/mp4' }));
+                    // add a link that launch a download of the video
+                    const a = document.createElement('a');
+                    a.download = 'video.mp4';
+                    a.href = videoURL;
+                    a.textContent = 'Download the video';
+                    a.id = 'download';
+                    document.body.appendChild(a);
+                    document.getElementById('download')?.click();
+                    setDlProgress("Downloaded to your download folder");
+                    // after we need to remove the newly added button
+                    document.body.removeChild(a)
+                    // release every file from the virtual file system
+                    ffmpeg.unmount('output.mp4');
+                    ffmpeg.unmount('index.m3u8');
+                    for (let i = 0; i < URLSList.length; i++) {
+                        ffmpeg.unmount('video' + i + '.ts');
+                    }
+                    // release ffmpeg
+                    await ffmpeg.terminate();
+                });
         })();
     }
 
@@ -183,6 +210,10 @@ export default function Player() {
             if (play) {
                 // @ts-ignore
                 setPlayer(play);
+                (async () => {
+                    let episodeVersions = await getEpisodeVersions();
+                    setEpisodeVersion(episodeVersions);
+                })();
             } else {
                 setTimeout(setupPlayer, 100);
             }
@@ -223,6 +254,7 @@ export default function Player() {
                 let episodeToFetch = await getEpisodeAnimeId(parseInt(animeId, 10), parseInt(episodeId, 10));
                 if (!episodeToFetch) return episodeNotFound(animeId, parseInt(episodeId, 10));
                 setEpisode(episodeToFetch);
+
                 let seasons = await seasonalAnimes({
                     id: parseInt(animeId, 10)
                 });
@@ -562,9 +594,27 @@ export default function Player() {
                 </Helmet>
                 <Modal opened={opened} onClose={close} title="Download Progress">
                     <Center>
-                        <Text size="xl" style={{ color: 'white', fontSize: "1.5rem", marginTop: "5px", fontWeight: "bold", lineHeight: "2rem" }}>
-                            Téléchargement en cours <br/> {dlProgress}
-                        </Text>
+                        {dlProgress == "notloaded" && getEpisodeVersion.length > 0 && getEpisodeVersion.map((e, i) => {
+                            return (
+                                <div key={i}>
+                                    <div>{i == 0 ? "VOSTFR" : "VF"}</div>
+                                    <Select
+                                        data={e.map((e2) => {
+                                            return {
+                                                label: e2.quality.name + " - " + e2.quality.quality + "p",
+                                                value: e2.url
+                                            }
+                                        })}
+                                        onChange={(e) => {
+                                            downloadEpisode(e as string);
+                                        }}
+                                        placeholder="Select a quality"
+                                        style={{ width: "100%" }}
+                                    />
+                                </div>
+                            )
+                        })}
+                        {dlProgress != "notloaded" && <div>{dlProgress}</div>}
                     </Center>
                     <Button onClick={close} variant="outline" color="blue" style={{ marginTop: "10px" }}>Fermer la modale</Button>
                 </Modal>
@@ -665,7 +715,7 @@ export default function Player() {
                             <ActionIcon
                                 variant="transparent"
                                 color="white"
-                                onClick={downloadEpisode}
+                                onClick={open}
                             >
                                 <IconDownload />
                             </ActionIcon>
@@ -695,7 +745,7 @@ export default function Player() {
                         <ActionIcon
                             variant="transparent"
                             color="white"
-                            onClick={() => {  window.location.href = "/anime/" + animeId;}}
+                            onClick={() => { window.location.href = "/anime/" + animeId; }}
                         >
                             <IconHome />
                         </ActionIcon>
