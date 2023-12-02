@@ -3,7 +3,6 @@ import { LatestEpisode, latest } from "../utils/apiFetcher";
 import Shell from "../components/Shell";
 import { BackgroundImage, Grid, Paper, em, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { useNavigate } from "react-router-dom";
 import { convertEpisodeToNumber } from "../utils/util";
 import { Helmet } from "react-helmet";
 import { logEvent } from "firebase/analytics";
@@ -11,7 +10,6 @@ import { analytics } from "../utils/database";
 function LatestComponent() {
     const isLittleMobile = useMediaQuery(`(max-width: ${em(400)})`);
     const [animeReleased, setAnimeReleased] = useState<LatestEpisode[]>([]);
-    const navigate = useNavigate();
     useEffect(() => {
         setTimeout(() => {
             logEvent(analytics,'page_view',{
@@ -41,7 +39,7 @@ function LatestComponent() {
             paddingTop: "20px" }}>
             {animeReleased && animeReleased.map((anime) => {
                 return (
-                        <Paper key={anime.timestamp} style={{ height: "100%", width: isLittleMobile ? "8rem" : "10rem", margin:10}} radius="sm" onClick={()=>navigate("/anime/"+anime.url.match(new RegExp(/\/(\d+)/,"i"))?.[1]+"/episode/"+convertEpisodeToNumber(anime.episode))}>
+                        <Paper key={anime.timestamp} style={{ height: "100%", width: isLittleMobile ? "8rem" : "10rem", margin:10}} radius="sm" onClick={()=>window.location.href =("/anime/"+anime.url.match(new RegExp(/\/(\d+)/,"i"))?.[1]+"/episode/"+convertEpisodeToNumber(anime.episode))}>
                             <BackgroundImage src={anime.url_image.replace("/3/","/1/")} radius="sm" style={{
                                 
                             }} >

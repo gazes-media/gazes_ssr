@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import Shell from "../components/Shell";
 import { BackgroundImage, Grid, Paper, em, Text, Center, Button, Badge } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { StoreContext } from "../Context/MainContext";
 import { Anime, LatestEpisode, latest } from "../utils/apiFetcher";
 import { analytics } from "../utils/database";
@@ -13,8 +13,6 @@ function LatestComponent() {
     const isLittleMobile = useMediaQuery(`(max-width: ${em(400)})`);
     const { animes, historyWatched, setHistoryWatched } = useContext(StoreContext);
     let [LatestEpisode, setlatest] = useState<LatestEpisode[]>([]);
-
-    const navigate = useNavigate();
     useEffect(() => {
         setTimeout(() => {
             logEvent(analytics, 'page_view', {
@@ -55,7 +53,7 @@ function LatestComponent() {
                         return (
                             <Paper key={anime.id} style={{ height: "100%", width: isLittleMobile ? "8rem" : "10rem", margin: 10 }} radius="sm" >
 
-                                <BackgroundImage src={currentAnime.url_image} radius="sm" onClick={() => navigate("/anime/" + anime.id + "/episode/" + anime.episode)}>
+                                <BackgroundImage src={currentAnime.url_image} radius="sm" onClick={() => window.location.href = "/anime/" + anime.id + "/episode/" + anime.episode}>
                                     {last && convertEpisodeToNumber(last.episode) > anime.episode && <Badge style={{ position: "relative", top: 0, right: 0 }} color="red">Nouveau</Badge>}
                                     <div style={{ height: (isLittleMobile ? 150 : 180) - reduce }} />
                                     <Text size="sm" truncate="end" style={{ color: 'white', fontSize: "0.8rem", fontWeight: "bold", lineHeight: "2rem" }} bg={"rgba(0,0,0,0.5)"}>

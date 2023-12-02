@@ -139,11 +139,11 @@ function FicheComponent({ animeId }: { animeId: string }) {
                   <Button radius={"sm"} style={{
                     marginRight: 10,
                   }}
-                    onClick={() => { navigate("/anime/" + fiche?.id + "/episode/1") }}
+                    onClick={() => { window.location.href = ("/anime/" + fiche?.id + "/episode/1") }}
                   >{lastEpisode ? "Recommencer" : "Commencer"}</Button>
                   {lastEpisode ? <Button radius={"sm"} style={{
                     marginRight: 10,
-                  }} onClick={() => { navigate("/anime/" + fiche?.id + "/episode/" + lastEpisode) }}>Reprendre ep {lastEpisode}</Button> : null}
+                  }} onClick={() => { window.location.href = ("/anime/" + fiche?.id + "/episode/" + lastEpisode) }}>Reprendre ep {lastEpisode}</Button> : null}
                 </Group>
               </GridCol>
               <GridCol span={12}>
