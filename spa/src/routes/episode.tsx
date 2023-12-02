@@ -72,6 +72,7 @@ export default function Player() {
         const ffmpeg = ffmpegRef.current;
         const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
         // load ffmpeg
+        if(!window.crossOriginIsolated) return setDlProgress("Please enable reload the page, crossOriginIsolated is not enabled");
         if(ffmpeg.loaded) return;
         (async() => {
             await ffmpeg.load({
@@ -492,11 +493,11 @@ export default function Player() {
                                 session?.loadMedia(new chrome.cast.media.LoadRequest(mediaInfo));
                             }
                         } else {
-                            navigate("/anime/" + idAnime);
+                            window.location.href = "/anime/" + idAnime;
                         }
                     } else {
                         removeAnime(idAnime);
-                        navigate("/anime/" + idAnime);
+                        window.location.href = "/anime/" + idAnime;
                     }
                 }
             } else {
@@ -512,11 +513,11 @@ export default function Player() {
                                 duration: videoPlayer.duration
                             })
                         }
-                        return navigate("/anime/" + idAnime);
+                        return window.location.href = "/anime/" + idAnime;
                     }
                 } else {
                     removeAnime(idAnime);
-                    return navigate("/anime/" + idAnime);
+                    return window.location.href = "/anime/" + idAnime;
                 }
                 let episodeToFetch = await getEpisodeAnimeId(idAnime, nextEpisode);
                 if (!episodeToFetch) return episodeNotFound(idAnime.toString(), nextEpisode);
@@ -694,7 +695,7 @@ export default function Player() {
                         <ActionIcon
                             variant="transparent"
                             color="white"
-                            onClick={() => { navigate("/anime/" + animeId) }}
+                            onClick={() => {  window.location.href = "/anime/" + animeId;}}
                         >
                             <IconHome />
                         </ActionIcon>
