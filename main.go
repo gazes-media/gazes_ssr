@@ -78,7 +78,7 @@ func main() {
 	}))
 
 	router.Handle("/anime/{id}/episode/{episode}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		id := mux.Vars(r)["id"]
 		episode := mux.Vars(r)["episode"]
 		if id == "" || episode == "" {
