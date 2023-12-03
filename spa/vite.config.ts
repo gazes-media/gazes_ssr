@@ -65,6 +65,7 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,png,jpg,svg}'],
+        navigateFallbackDenylist: [/^\/episode/],
         sourcemap: false,
       },
     })
@@ -76,6 +77,5 @@ export default defineConfig({
     cssCodeSplit: true,
     sourcemap: true,
     assetsDir: 'assets',
-    minify: 'terser',
   },
 })
