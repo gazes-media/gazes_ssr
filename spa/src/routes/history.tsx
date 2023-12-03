@@ -9,6 +9,7 @@ import { analytics } from "../utils/database";
 import { getAnimeList, removeAnime } from "../utils/storage";
 import { convertEpisodeToNumber } from "../utils/util";
 import { logEvent } from "firebase/analytics";
+import { Helmet } from "react-helmet";
 function LatestComponent() {
     const isLittleMobile = useMediaQuery(`(max-width: ${em(400)})`);
     const { animes, historyWatched, setHistoryWatched } = useContext(StoreContext);
@@ -105,6 +106,9 @@ export default function History() {
     let currentRoute = useLocation().pathname;
     return (
         <div>
+            <Helmet>
+                <title>Historique - Gazes</title>
+            </Helmet>
             <Shell currentRoute={currentRoute} child={<LatestComponent />} />
         </div>
     )

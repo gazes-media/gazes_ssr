@@ -63,7 +63,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        cleanupOutdatedCaches: true,
         globPatterns: ['**/*.{js,css,html,png,jpg,svg}'],
+        sourcemap: false,
       },
     })
   ],
@@ -71,5 +73,9 @@ export default defineConfig({
     outDir: '../public',
     emptyOutDir: true,
     chunkSizeWarningLimit: 2000,
+    cssCodeSplit: true,
+    sourcemap: true,
+    assetsDir: 'assets',
+    minify: 'terser',
   },
 })

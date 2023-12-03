@@ -27,9 +27,6 @@
     <link rel="apple-touch-icon" href="/icon/ios/512.png" sizes="512x512" />
     <link rel="apple-touch-icon" href="/icon/ios/1024.png" sizes="1024x1024" />
     {{.Meta}}
-    <script id="vite-plugin-pwa:inline-sw">
-      if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' })})}
-    </script>
   </head>
   <body style="min-width: 200px;">
     <div id="root"></div>    

@@ -48,19 +48,6 @@ function SearchComponent() {
         <div>
             <Helmet>
                 <title>Rechercher un anime</title>
-                <meta name="description" content="Rechercher un anime" />
-                <meta name="keywords" content="anime, animes, regarder, streaming, gratuit, vf, vostfr, rechercher" />
-                <meta name="author" content="Gazes" />
-                <meta name="robots" content="index, follow" />
-                <meta name="og:title" content="Rechercher un anime" />
-                <meta name="og:description" content="Rechercher un anime" />
-                <meta name="og:image" content="https://gazes.fr/favicon.ico" />
-                <meta name="twitter:card" content="summary" />
-                <meta name="twitter:site" content="@gazesx" />
-                <meta name="twitter:creator" content="@gazesx" />
-                <meta name="twitter:title" content="Rechercher un anime" />
-                <meta name="twitter:description" content="Rechercher un anime" />
-                <meta name="twitter:image" content="https://gazes.fr/favicon.ico" />
             </Helmet>
             <Flex align="center" //they just need to be center on the same line
         justify="space-between"

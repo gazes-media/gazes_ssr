@@ -48,7 +48,6 @@ export default function Shell({ child, currentRoute}: { child: React.ReactNode, 
           let recent = last.find(e => e.anime_url == currentAnime.url);
           return recent && convertEpisodeToNumber(recent.episode) > anime.episode;
         })
-        console.log(filtered);
         setHistoryUpdated(filtered);
 
       })();

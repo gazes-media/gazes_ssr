@@ -1,0 +1,2 @@
+import{i as s,j as t,V as i}from"./index-8fe412d1.js";const e=/,/g;class a extends s{parse(s,e){var a,h;if(""===s)this.a&&(this.j.push(this.a),null==(h=(a=this.f).onCue)||h.call(a,this.a),this.a=null),this.c=t.None;else if(this.c===t.Cue)this.a.text+=(this.a.text?"\n":"")+s;else if(s.includes("--\x3e")){const a=this.o(s,e);a&&(this.a=new i(a[0],a[1],a[2].join(" ")),this.a.id=this.l,this.c=t.Cue)}this.l=s}o(s,t){return super.o(s.replace(e,"."),t)}}function h(){return new a}export{a as SRTParser,h as default};
+//# sourceMappingURL=srt-parser-91e8e2ac.js.map
