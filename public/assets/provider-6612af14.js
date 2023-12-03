@@ -1,0 +1,2 @@
+var e=Object.defineProperty,t=(t,r,i)=>(((t,r,i)=>{r in t?e(t,r,{enumerable:!0,configurable:!0,writable:!0,value:i}):t[r]=i})(t,"symbol"!=typeof r?r+"":r,i),i);import{H as r}from"./provider-572956bc.js";import"./index-8fe412d1.js";class i extends r{constructor(){super(...arguments),t(this,"$$PROVIDER_TYPE","AUDIO")}get type(){return"audio"}setup(e){super.setup(e),"audio"===this.type&&e.delegate.R("provider-setup",{detail:this})}get audio(){return this.k}}export{i as AudioProvider};
+//# sourceMappingURL=provider-6612af14.js.map

@@ -65,23 +65,6 @@ export default function Latest(){
         <div>
             <Helmet>
                 <title>Dernières sorties</title>
-                <meta name="description" content="Les dernières sorties d'animes" />
-                <meta name="keywords" content="anime, animes, regarder, streaming, gratuit, vf, vostfr, dernières sorties" />
-                <meta name="author" content="Gazes" />
-                <meta name="robots" content="index, follow" />
-                <meta name="og:title" content="Dernières sorties" />
-                <meta name="og:description" content="Les dernières sorties d'animes" />
-                <meta name="og:image" content="https://gazes.fr/favicon.ico" />
-                <meta name="og:url" content="https://gazes.fr/latest" />
-                <meta name="og:site_name" content="Gazes" />
-                <meta name="og:type" content="website" />
-                <meta name="twitter:card" content="summary" />
-                <meta name="twitter:site" content="@gazes" />
-                <meta name="twitter:creator" content="@gazes" />
-                <meta name="twitter:title" content="Dernières sorties" />
-                <meta name="twitter:description" content="Les dernières sorties d'animes" />
-                <meta name="twitter:image" content="https://gazes.fr/favicon.ico" />
-                <meta name="twitter:url" content="https://gazes.fr/latest" />
             </Helmet>
         <Shell currentRoute="/latest" child={<LatestComponent/>} />
         </div>

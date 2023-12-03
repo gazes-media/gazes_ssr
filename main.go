@@ -48,11 +48,9 @@ func main() {
 	})
 
 	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.MasterHandler(w, r)
 	})
 	router.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.SearchHandler(w, r)
 	})
 
@@ -63,12 +61,10 @@ func main() {
 		http.ServeFile(w, r, "./public/sw.js")
 	})
 	router.HandleFunc("/latest", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.LatestHandler(w, r)
 	})
 
 	router.Handle("/anime/{id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
 		id := mux.Vars(r)["id"]
 		if id == "" {
 			routes.NotFoundHandler(w, r)
@@ -89,7 +85,6 @@ func main() {
 	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Service-Worker-Allowed", "/")
 		routes.HistoryHandler(w, r)
 	})
 

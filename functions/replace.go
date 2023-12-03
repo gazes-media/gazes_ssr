@@ -48,19 +48,21 @@ func ReplaceHtml(title, description, image, tags, videoUri string) []byte {
 
 	var metaTags strings.Builder
 	videoMeta := template.HTML(metaVideo(videoUri))
-
+	serviceWorker := template.HTML(ServiceWorker(videoUri))
 	meta.Execute(&metaTags, struct {
-		Title       string
-		Description string
-		Image       string
-		Tags        string
-		VideoUri    template.HTML
+		Title         string
+		Description   string
+		Image         string
+		Tags          string
+		VideoUri      template.HTML
+		ServiceWorker template.HTML
 	}{
-		Title:       title,
-		Description: description,
-		Image:       image,
-		Tags:        tags,
-		VideoUri:    videoMeta,
+		Title:         title,
+		Description:   description,
+		Image:         image,
+		Tags:          tags,
+		VideoUri:      videoMeta,
+		ServiceWorker: serviceWorker,
 	})
 
 	html := getHtmlTemplate()
@@ -89,4 +91,13 @@ func metaVideo(url string) string {
 	<meta property="twitter:player" content="` + url + `">
 	<meta property="twitter:player:width" content="1280">
 	<meta property="twitter:player:height" content="720">`
+}
+
+func ServiceWorker(videoUri string) string {
+	if videoUri != "" {
+		return ` <script id="vite-plugin-pwa:inline-sw">
+	if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/sw.js', { scope: '/' })})}
+  </script>`
+	}
+	return ""
 }

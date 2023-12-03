@@ -553,12 +553,6 @@ export default function Player() {
             <div className='overflow-hidden'>
                 <Helmet>
                     <title>{fiche.title + "- Episode " + episode.vostfr.num}</title>
-                    <meta name="description" content={fiche.title + "- Episode " + episode.vostfr.num} />
-                    <meta property="og:title" content={fiche.title + "- Episode " + episode.vostfr.num} />
-                    <meta property="og:description" content={fiche.title + "- Episode " + episode.vostfr.num} />
-                    <meta property="og:image" content={fiche.url_image} />
-                    <meta property='og:keywords' content={`${fiche.others}, ${fiche.title}, ${fiche.title} ${episode.vostfr.num}, ${fiche.title} ${episode.vostfr.num} vostfr, ${fiche.title} ${episode.vostfr.num} vf`} />
-                    <meta property='keywords' content={`${fiche.others}, ${fiche.title}, ${fiche.title} ${episode.vostfr.num}, ${fiche.title} ${episode.vostfr.num} vostfr, ${fiche.title} ${episode.vostfr.num} vf`} />
                 </Helmet>
                 <Modal opened={opened} onClose={close} title="Download Progress">
                     <Center>
@@ -742,12 +736,6 @@ export default function Player() {
             <div className='overflow-hidden'>
                 <Helmet>
                     <title>{fiche.title + "- Episode " + episode.vostfr.num}</title>
-                    <meta name="description" content={fiche.title + "- Episode " + episode.vostfr.num} />
-                    <meta property="og:title" content={fiche.title + "- Episode " + episode.vostfr.num} />
-                    <meta property="og:description" content={fiche.title + "- Episode " + episode.vostfr.num} />
-                    <meta property="og:image" content={fiche.url_image} />
-                    <meta property='og:keywords' content={`${fiche.others}, ${fiche.title}, ${fiche.title} ${episode.vostfr.num}, ${fiche.title} ${episode.vostfr.num} vostfr, ${fiche.title} ${episode.vostfr.num} vf`} />
-                    <meta property='keywords' content={`${fiche.others}, ${fiche.title}, ${fiche.title} ${episode.vostfr.num}, ${fiche.title} ${episode.vostfr.num} vostfr, ${fiche.title} ${episode.vostfr.num} vf`} />
                 </Helmet>
                 <Paper style={{ height: "100vh", margin: "20px" }} radius={"md"}>
                     <Flex justify={"space-between"} align={"center"} gap={"lg"}>
