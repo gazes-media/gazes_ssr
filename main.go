@@ -1,8 +1,8 @@
 package main
 
 import (
+	"gazes_ssr/functions"
 	"gazes_ssr/routes"
-	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -10,9 +10,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
-var fsys fs.FS
 var static http.Handler
 var port string = "5454"
+var cache = functions.NewCache()
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
@@ -82,6 +82,16 @@ func main() {
 			return
 		}
 		routes.EpisodeHandler(w, r, id, episode)
+	}))
+	router.Handle("/anime/{id}/episode/{episode}/mp4", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		id := mux.Vars(r)["id"]
+		episode := mux.Vars(r)["episode"]
+		if id == "" || episode == "" {
+			routes.NotFoundHandler(w, r)
+			return
+		}
+		routes.DownloadHandler(w, r, id, episode, cache)
 	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
