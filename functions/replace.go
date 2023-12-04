@@ -79,7 +79,6 @@ func metaVideo(url string) string {
 	if url == "" {
 		return ""
 	}
-	url = strings.Replace(url, "https://gazes.fr", "https://sunny-wi-ingredients-coordinate.trycloudflare.com", 1)
 	return `<meta property="og:video" content="` + url + `">
 	<meta property="og:video:secure_url" content="` + url + `">
 	<meta property="og:video:type" content="text/html">
