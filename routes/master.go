@@ -8,5 +8,5 @@ import (
 func MasterHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	name := "Gazes - Home"
-	w.Write(functions.ReplaceHtml(name, functions.Description, functions.Image, functions.Keywords,""))
+	w.Write(functions.ReplaceHtml(name, functions.Description, functions.Image, functions.Keywords, ""))
 }

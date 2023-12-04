@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gazes_ssr/routes"
 	"gazes_ssr/functions"
+	"gazes_ssr/routes"
 	"log"
 	"net/http"
 	"os"
