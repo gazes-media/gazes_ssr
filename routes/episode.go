@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func EpisodeHandler(w http.ResponseWriter, r *http.Request, id, ep string) {
@@ -26,7 +27,7 @@ func EpisodeHandler(w http.ResponseWriter, r *http.Request, id, ep string) {
 	w.Header().Set("Cross-Origin-Embedder-Policy", "require-corp")
 	w.Header().Set("Cross-Origin-Opener-Policy", "same-origin")
 	name := "Episode " + strconv.Itoa(episode.Num) + " - " + episode.Title + " - Gazes"
-	image := episode.UrlImage
+	image := strings.Replace(episode.UrlImage, "https://animecat.net/images/default_thumbnail.png", "https://gazes.fr/icon/android/android-launchericon-512-512.png", 1)
 	description := "Regarder l'épisode " + strconv.Itoa(episode.Num) + " de " + datas.Data.Title + " en streaming VOSTFR sur Gazes"
 	videoUri := "https://gazes.fr/anime/" + id + "/episode/" + ep
 	w.Write(functions.ReplaceHtml(name, description, image, functions.Keywords, videoUri))
