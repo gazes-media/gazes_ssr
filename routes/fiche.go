@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"gazes_ssr/functions"
+	"log"
 	"net/http"
 )
+
+var client = functions.NewHttpClient()
 
 func AnimeHandler(w http.ResponseWriter, r *http.Request, id string) {
 	response, err := getAnime(id)
@@ -21,7 +24,7 @@ func AnimeHandler(w http.ResponseWriter, r *http.Request, id string) {
 }
 
 func getAnime(id string) (*JsonResponse, error) {
-	data, err := http.Get("https://api.gazes.fr/anime/animes/" + id)
+	data, err := client.Get("https://api.gazes.fr/anime/animes/" + id)
 	if err != nil {
 		return nil, err
 	}
@@ -29,10 +32,11 @@ func getAnime(id string) (*JsonResponse, error) {
 	var response JsonResponse
 	err = json.NewDecoder(data.Body).Decode(&response)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	if !response.Success {
-		return nil, errors.New("Anime not found")
+		return nil, errors.New("failed to get anime")
 	}
 	return &response, nil
 }

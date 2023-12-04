@@ -89,6 +89,8 @@ func metaVideo(url string) string {
 	<meta property="og:image:height" content="720">
 	<meta property="og:image:type" content="image/jpeg">
 	<meta property="twitter:player" content="` + url + `">
+	<meta name="twitter:player:stream" content="` + url + `/mp4" />
+	<meta name="twitter:player:stream:content_type" content="video/mp4" />
 	<meta property="twitter:player:width" content="1280">
 	<meta property="twitter:player:height" content="720">`
 }
