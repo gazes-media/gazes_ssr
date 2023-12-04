@@ -24,7 +24,7 @@ func (c *Cache) Set(key string, value interface{}) {
 	// auto remove after 12 hours
 	go func() {
 		time.Sleep(12 * time.Hour)
-		e := os.Remove(value.(string))
+		e := os.Remove("videos/" + key + ".mp4") // remove the video from the disk
 		if e == nil {
 			c.Remove(key)
 		}

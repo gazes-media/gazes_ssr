@@ -3,6 +3,7 @@ package routes
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"gazes_ssr/functions"
 	"log"
 	"net/http"
@@ -26,13 +27,14 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 		NotFoundHandler(w, r)
 		return
 	}
+
 	w.Header().Set("Content-Type", "video/mp4")
 	downloadEpisode(episode, cache)
 	episodeName := episode.Vostfr.Title + "- Episode " + strconv.Itoa(episode.Vostfr.Num)
 	videoIsReady, found := cache.Get(episodeName)
 	if found {
 		if videoIsReady.(string) == "downloading" {
-			w.Write([]byte("downloading"))
+			http.ServeFile(w, r, "public/encoding.mp4")
 			return
 		} else {
 			http.ServeFile(w, r, "videos/"+videoIsReady.(string))
@@ -44,14 +46,15 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error) {
 	// check if the video is already in the folder, and if it is, put it in the cache and return it
 	episodeName := episode.Vostfr.Title + "- Episode " + strconv.Itoa(episode.Vostfr.Num)
-	// check if the video Dir exists
+	// check if the video dir exists
 	if _, err := os.Stat("videos"); os.IsNotExist(err) {
 		os.Mkdir("videos", 0755)
 	}
-	if _, err := os.Stat(episodeName + ".mp4"); err == nil {
+	if _, err := os.Stat("videos/" + episodeName + ".mp4"); err == nil {
 		cache.Set(episodeName, episodeName+".mp4")
 		return episodeName + ".mp4", nil
 	}
+	fmt.Println("Downloading " + episodeName)
 	value, found := cache.Get(episodeName)
 	if found {
 		if value.(string) == "downloading" {
@@ -60,7 +63,7 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 			return value.(string), nil
 		}
 	}
-	cmd := exec.Command("ffmpeg", "-i", episode.Vostfr.VideoUri, "-c", "copy", "-bsf:a", "aac_adtstoasc","videos/"+episodeName+".mp4")
+	cmd := exec.Command("ffmpeg", "-i", episode.Vostfr.VideoUri, "-c", "copy", "-bsf:a", "aac_adtstoasc", "videos/"+episodeName+".mp4")
 	stdout, err := cmd.StderrPipe()
 	if err != nil {
 		return "", err
