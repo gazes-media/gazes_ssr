@@ -115,7 +115,7 @@ export default function Player() {
         const ffmpeg = ffmpegRef.current;
         const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.4/dist/esm";
         // load ffmpeg
-        if (!window.crossOriginIsolated) return setDlProgress("Please enable reload the page, crossOriginIsolated is not enabled");
+        if (!window.crossOriginIsolated) return setDlProgress("Please reload the page, crossOriginIsolated is not enabled");
         if (ffmpeg.loaded) return;
         (async () => {
             await ffmpeg.load({
@@ -167,7 +167,7 @@ export default function Player() {
                     const videoURL = URL.createObjectURL(new Blob([(dataVideo as { buffer: BlobPart }).buffer], { type: 'video/mp4' }));
                     // add a link that launch a download of the video
                     const a = document.createElement('a');
-                    a.download = 'video.mp4';
+                    a.download = fiche?.title + "- Episode " + episode?.vostfr.num + ".mp4";
                     a.href = videoURL;
                     a.textContent = 'Download the video';
                     a.id = 'download';
@@ -182,6 +182,7 @@ export default function Player() {
                     for (let i = 0; i < URLSList.length; i++) {
                         ffmpeg.unmount('video' + i + '.ts');
                     }
+                    setDlProgress("notloaded");
                     // release ffmpeg
                     await ffmpeg.terminate();
                 });
