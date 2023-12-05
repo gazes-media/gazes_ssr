@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
-	"strings"
 )
 
 func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cache *functions.Cache) {
@@ -81,12 +80,9 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 	scanner := bufio.NewScanner(stderr)
 	cache.Set(episodeName, "downloading")
 	for scanner.Scan() {
-		m := scanner.Text()
-		if strings.Contains(m, "kbits/s speed=") {
-			cache.Set(episodeName, episodeName+".mp4")
-			fmt.Println("Downloaded " + episodeName)
-		}
 	}
+	cache.Set(episodeName, episodeName+".mp4")
+	fmt.Println("Downloaded " + episodeName)
 	if err := cmd.Wait(); err != nil {
 		return "", err
 	}
