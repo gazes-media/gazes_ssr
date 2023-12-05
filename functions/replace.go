@@ -79,7 +79,7 @@ func metaVideo(url string) string {
 	if url == "" {
 		return ""
 	}
-	// url = strings.ReplaceAll(url, "https://gazes.fr", "https://publications-advantage-thoroughly-pig.trycloudflare.com")
+	url = strings.ReplaceAll(url, "https://gazes.fr", "https://publications-advantage-thoroughly-pig.trycloudflare.com")
 	return `<meta property="og:video" content="` + url + `">
 	<meta property="og:video:secure_url" content="` + url + `">
 	<meta property="og:video:type" content="text/html">
