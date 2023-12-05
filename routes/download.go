@@ -82,7 +82,7 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 	cache.Set(episodeName, "downloading")
 	for scanner.Scan() {
 		m := scanner.Text()
-		if strings.Contains(m, "time=") {
+		if strings.Contains(m, "kbits/s speed=") {
 			cache.Set(episodeName, episodeName+".mp4")
 			fmt.Println("Downloaded " + episodeName)
 		}
