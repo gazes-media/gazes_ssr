@@ -29,7 +29,6 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 	}
 
 	w.Header().Set("Content-Type", "video/mp4")
-	go downloadEpisode(episode, cache)
 	episodeName := episode.Vostfr.Title + "- Episode " + strconv.Itoa(episode.Vostfr.Num)
 	videoIsReady, found := cache.Get(episodeName)
 	if found {
@@ -46,6 +45,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 	} else {
 		fmt.Println("Video not found in cache")
 		w.Write([]byte("Video not found in cache"))
+		downloadEpisode(episode, cache)
 		return
 	}
 }
@@ -83,8 +83,8 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 	for scanner.Scan() {
 		m := scanner.Text()
 		if strings.Contains(m, "time=") {
-			log.Println(m)
 			cache.Set(episodeName, episodeName+".mp4")
+			fmt.Println("Downloaded " + episodeName)
 		}
 	}
 	if err := cmd.Wait(); err != nil {
