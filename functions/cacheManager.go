@@ -7,8 +7,9 @@ import (
 )
 
 type Cache struct {
-	data  map[string]interface{}
-	mutex sync.Mutex
+	data    map[string]interface{}
+	mutex   sync.Mutex
+	rwmutex sync.RWMutex
 }
 
 func NewCache() *Cache {
@@ -35,10 +36,10 @@ func (c *Cache) Set(key string, value interface{}) {
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	value, found := c.data[key]
-	return value, found
+	c.rwmutex.RLock()
+	defer c.rwmutex.RUnlock()
+	value, ok := c.data[key]
+	return value, ok
 }
 
 func (c *Cache) Remove(key string) {
