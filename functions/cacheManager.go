@@ -8,7 +8,7 @@ import (
 
 type Cache struct {
 	data  map[string]interface{}
-	mutex sync.RWMutex
+	mutex sync.Mutex
 }
 
 func NewCache() *Cache {
@@ -21,25 +21,22 @@ func (c *Cache) Set(key string, value interface{}) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.data[key] = value
-	go func() {
-		if c.GetLength() > 50 {
-			c.RemoveLast()
-		}
-	}()
 
-	// auto remove after 12 hours
+	// Check cache size and remove last if it exceeds 50
+	if len(c.data) > 50 {
+		c.removeLast()
+	}
+
+	// Schedule auto-removal after 12 hours
 	go func() {
 		time.Sleep(12 * time.Hour)
-		e := os.Remove(key + ".mp4") // remove the video from the disk
-		if e == nil {
-			c.Remove(key)
-		}
+		c.removeExpired(key)
 	}()
 }
 
 func (c *Cache) Get(key string) (interface{}, bool) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	value, found := c.data[key]
 	return value, found
 }
@@ -50,23 +47,23 @@ func (c *Cache) Remove(key string) {
 	delete(c.data, key)
 }
 
-func (c *Cache) RemoveLast() {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	for k := range c.data {
-		data, _ := c.Get(k)
+func (c *Cache) removeLast() {
+	for k, data := range c.data {
 		if data.(string) != "downloading" {
-			e := os.Remove("videos/" + k + ".mp4") // remove the video from the disk
-			if e == nil {
-				delete(c.data, k)
-			}
+			delete(c.data, k)
+			_ = os.Remove("videos/" + k + ".mp4") // remove the video from the disk
+			break
 		}
-		return
 	}
 }
 
-func (c *Cache) GetLength() int {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	return len(c.data)
+func (c *Cache) removeExpired(key string) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	// Check if the key still exists and remove it
+	if _, ok := c.data[key]; ok {
+		_ = os.Remove("videos/" + key + ".mp4") // remove the video from the disk
+		delete(c.data, key)
+	}
 }
