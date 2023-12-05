@@ -40,7 +40,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 			return
 		} else {
 			fmt.Println("Video is ready")
-			http.ServeFile(w, r, "videos/"+videoIsReady.(string))
+			http.ServeFile(w, r, videoIsReady.(string))
 			return
 		}
 	} else {
@@ -53,15 +53,10 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error) {
 	// check if the video is already in the folder, and if it is, put it in the cache and return it
 	episodeName := episode.Vostfr.Title + "- Episode " + strconv.Itoa(episode.Vostfr.Num)
-	// check if the video dir exists
-	if _, err := os.Stat("videos"); os.IsNotExist(err) {
-		os.Mkdir("videos", 0755)
-	}
-	if _, err := os.Stat("videos/" + episodeName + ".mp4"); err == nil {
+	if _, err := os.Stat(episodeName + ".mp4"); err == nil {
 		cache.Set(episodeName, episodeName+".mp4")
 		return episodeName + ".mp4", nil
 	}
-	fmt.Println("Downloading " + episodeName)
 	value, found := cache.Get(episodeName)
 	if found {
 		if value.(string) == "downloading" {
@@ -70,24 +65,27 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 			return value.(string), nil
 		}
 	}
-	cmd := exec.Command("ffmpeg", "-i", episode.Vostfr.VideoUri, "-c", "copy", "-bsf:a", "aac_adtstoasc", "videos/"+episodeName+".mp4")
-	stdout, err := cmd.StderrPipe()
+	fmt.Println("Downloading " + episodeName)
+	cmd := exec.Command("ffmpeg", "-i", episode.Vostfr.VideoUri, "-c", "copy", "-bsf:a", "aac_adtstoasc", episodeName+".mp4")
+	fmt.Println(cmd.String())
+	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error creating stderr pipe:", err)
 		return "", err
 	}
+
 	if err := cmd.Start(); err != nil {
-		fmt.Println(err)
+		fmt.Println("Error starting ffmpeg:", err)
 		return "", err
 	}
-	cache.Set(episodeName, "downloading")
-	scanner := bufio.NewScanner(stdout)
+
+	scanner := bufio.NewScanner(stderr)
+	go cache.Set(episodeName, "downloading")
 	for scanner.Scan() {
 		m := scanner.Text()
-		fmt.Println(m)
+		log.Println(m)
 		if strings.Contains(m, "time=") {
-			cache.Set(episodeName, episodeName+".mp4")
-			break
+			go cache.Set(episodeName, episodeName+".mp4")
 		}
 	}
 	if err := cmd.Wait(); err != nil {

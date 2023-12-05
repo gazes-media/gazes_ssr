@@ -21,13 +21,16 @@ func (c *Cache) Set(key string, value interface{}) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.data[key] = value
-	if c.GetLength() > 50 {
-		c.RemoveLast()
-	}
+	go func() {
+		if c.GetLength() > 50 {
+			c.RemoveLast()
+		}
+	}()
+
 	// auto remove after 12 hours
 	go func() {
 		time.Sleep(12 * time.Hour)
-		e := os.Remove("videos/" + key + ".mp4") // remove the video from the disk
+		e := os.Remove(key + ".mp4") // remove the video from the disk
 		if e == nil {
 			c.Remove(key)
 		}
