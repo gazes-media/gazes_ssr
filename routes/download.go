@@ -29,7 +29,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 	}
 
 	w.Header().Set("Content-Type", "video/mp4")
-	downloadEpisode(episode, cache)
+	go downloadEpisode(episode, cache)
 	episodeName := episode.Vostfr.Title + "- Episode " + strconv.Itoa(episode.Vostfr.Num)
 	videoIsReady, found := cache.Get(episodeName)
 	if found {
