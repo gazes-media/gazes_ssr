@@ -36,7 +36,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 		fmt.Println("Video found in cache")
 		if videoIsReady.(string) == "downloading" {
 			fmt.Println("Video is downloading")
-			http.ServeFile(w, r, "public/encoding.mp4")
+			w.Write([]byte("Video is downloading"))
 			return
 		} else {
 			fmt.Println("Video is ready")
@@ -45,7 +45,7 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string, cach
 		}
 	} else {
 		fmt.Println("Video not found in cache")
-		http.ServeFile(w, r, "public/encoding.mp4")
+		w.Write([]byte("Video not found in cache"))
 		return
 	}
 }
@@ -67,7 +67,6 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 	}
 	fmt.Println("Downloading " + episodeName)
 	cmd := exec.Command("ffmpeg", "-i", episode.Vostfr.VideoUri, "-c", "copy", "-bsf:a", "aac_adtstoasc", episodeName+".mp4")
-	fmt.Println(cmd.String())
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		fmt.Println("Error creating stderr pipe:", err)
@@ -80,12 +79,12 @@ func downloadEpisode(episode EpisodeJson, cache *functions.Cache) (string, error
 	}
 
 	scanner := bufio.NewScanner(stderr)
-	go cache.Set(episodeName, "downloading")
+	cache.Set(episodeName, "downloading")
 	for scanner.Scan() {
 		m := scanner.Text()
-		log.Println(m)
 		if strings.Contains(m, "time=") {
-			go cache.Set(episodeName, episodeName+".mp4")
+			log.Println(m)
+			cache.Set(episodeName, episodeName+".mp4")
 		}
 	}
 	if err := cmd.Wait(); err != nil {
