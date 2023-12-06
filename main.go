@@ -81,16 +81,6 @@ func main() {
 		}
 		routes.EpisodeHandler(w, r, id, episode)
 	}))
-	router.Handle("/anime/{id}/episode/{episode}/mp4", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-		id := mux.Vars(r)["id"]
-		episode := mux.Vars(r)["episode"]
-		if id == "" || episode == "" {
-			routes.NotFoundHandler(w, r)
-			return
-		}
-		routes.DownloadHandler(w, r, id, episode)
-	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
 		routes.HistoryHandler(w, r)
