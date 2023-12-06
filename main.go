@@ -1,7 +1,6 @@
 package main
 
 import (
-	"gazes_ssr/functions"
 	"gazes_ssr/routes"
 	"log"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 
 var static http.Handler
 var port string = "5454"
-var cache = functions.NewCache()
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
