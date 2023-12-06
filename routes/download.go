@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"time"
 )
 
 func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string) {
@@ -63,6 +64,12 @@ func downloadEpisode(episode EpisodeJson) (string, error) {
 	if err := cmd.Wait(); err != nil {
 		return "", err
 	}
+	go func() {
+		// remove the video after 1 hour
+		time.Sleep(1 * time.Hour)
+		os.Remove(episodeName + ".mp4")
+	}()
+
 	return episode.Vostfr.Title + ".mp4", nil
 
 }

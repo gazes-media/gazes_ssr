@@ -89,7 +89,7 @@ func main() {
 			routes.NotFoundHandler(w, r)
 			return
 		}
-		routes.DownloadHandler(w, r, id, episode, cache)
+		routes.DownloadHandler(w, r, id, episode)
 	}))
 
 	router.HandleFunc("/history", func(w http.ResponseWriter, r *http.Request) {
