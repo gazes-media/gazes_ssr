@@ -34,7 +34,15 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	} else {
-		http.ServeFile(w, r, videoIsReady)
+		video, err := os.Open(videoIsReady)
+		if err != nil {
+			fmt.Println("DownloadStatus: " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		defer video.Close()
+		http.ServeContent(w, r, videoIsReady, time.Now(), video)
+		// remove the video from the cache of the program
 	}
 }
 
