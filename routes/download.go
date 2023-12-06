@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -42,11 +41,14 @@ func DownloadHandler(w http.ResponseWriter, r *http.Request, id, ep string) {
 		}
 		defer file.Close()
 
-		buffer := make([]byte, 1024)
-		_, err = io.CopyBuffer(w, file, buffer)
+		fileInfo, err := file.Stat()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+
+		http.ServeContent(w, r, fileInfo.Name(), fileInfo.ModTime(), file)
+
 		// remove the video from the cache of the program
 	}
 }
