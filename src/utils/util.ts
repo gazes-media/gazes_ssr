@@ -1,3 +1,5 @@
+import { parseFromString } from 'dom-parser';
+
 export function chunkify<T>(arr: T[], size: number): T[][] {
   const res: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
@@ -19,6 +21,6 @@ export function convertEpisodeToNumber(episode: string){
 }
 
 export function htmlToText(html: string){
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || html;
+    const doc = parseFromString("<body>"+html+"</body>");
+    return doc.getElementsByTagName("body")[0].textContent;
 }
