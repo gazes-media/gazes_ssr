@@ -5,7 +5,7 @@ dist
 .vercel
 .netlify
 netlify
-
+.vinxi
 # Environment
 .env
 .env*.local
