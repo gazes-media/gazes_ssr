@@ -1,18 +1,16 @@
 import { useState, useEffect, useContext } from "react";
-import { Episode, FicheAnime, genreEnums, getFicheAnime, seasonal, seasonalAnimes } from "../utils/apiFetcher";
+import { FicheAnime, genreEnums, getFicheAnime, getSeasonalAnimes } from "../utils/apiFetcher";
 import Shell from "../components/Shell";
 import { Helmet } from "react-helmet";
 import { useNavigate, useParams } from "react-router-dom";
 import { BackgroundImage, Flex, Grid, Paper, em, Text, GridCol, Button, Group, Select, Image, Pagination, Badge, ComboboxItemGroup } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { chunkify, strToUtf8 } from "../utils/util";
+import { chunkify } from "../utils/util";
 import { StoreContext } from "../Context/MainContext";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../utils/database";
 function FicheComponent({ animeId }: { animeId: string }) {
-  let [anime, setAnime] = useState<seasonal | null>(null);
   let [fiche, setFiche] = useState<FicheAnime | null>(null);
-  let [episodes, setEpisodes] = useState<Episode[][]>([]);
   let [selectSeason, setSelectSeason] = useState<ComboboxItemGroup[]>([]);
   let [page, setPage] = useState<number>(1);
   let [lastEpisode, setLatestEpisode] = useState<number | null>(null);
@@ -28,15 +26,7 @@ function FicheComponent({ animeId }: { animeId: string }) {
     }, 700);
 }, [])
   useEffect(() => {
-    (async () => {
-      let currentAnime = await seasonalAnimes({
-        id: parseInt(animeId, 10)
-      })
-      if(currentAnime.length <= 0) return navigate("/");
-      logEvent(analytics, 'load_anime', {
-        id: currentAnime[0].seasons[0].fiche.id,
-        title: currentAnime[0].seasons[0].fiche.title
-      });
+    (async () => {      
       let fiche = await getFicheAnime(parseInt(animeId, 10));
       if(!fiche) return navigate("/");
       logEvent(analytics, 'load_fiche', {
@@ -44,12 +34,25 @@ function FicheComponent({ animeId }: { animeId: string }) {
         title: fiche.title
       });
       setFiche(fiche);
-      setAnime(currentAnime[0]);
-      let films = currentAnime[0].seasons.filter(e => e.fiche.type == "m0v1e");
+      let datas: ComboboxItemGroup[] = [];
+
+      let currentAnime = await getSeasonalAnimes({
+        id: parseInt(animeId, 10)
+      })
+      if(currentAnime.length <= 0) {
+        logEvent(analytics, 'load_anime', {
+        id: animeId,
+        title: fiche.title
+      });
+      }else{
+        logEvent(analytics, 'load_anime', {
+          id: animeId,
+          title: currentAnime[0].seasons[0].fiche.title
+        });
+        let films = currentAnime[0].seasons.filter(e => e.fiche.type == "m0v1e");
       let ova = currentAnime[0].seasons.filter(e => e.fiche.type == "ova");
       let special = currentAnime[0].seasons.filter(e => e.fiche.type == "special");
       let tv = currentAnime[0].seasons.filter(e => e.fiche.type == "tv");
-      let datas: ComboboxItemGroup[] = [];
       if (tv.length > 0) {
         datas.push({
           group: "Anime Principal",
@@ -77,17 +80,16 @@ function FicheComponent({ animeId }: { animeId: string }) {
           items: special.map(e => ({ value: e.fiche.id.toString(), label: e.fiche.title }))
         })
       }
+      }
 
       let latestEpisodeWatched = historyWatched.find(e => e.id == (fiche as FicheAnime).id);
       if (latestEpisodeWatched) {
         setLatestEpisode(latestEpisodeWatched.episode);
       }
       setSelectSeason(datas);
-      setEpisodes(chunkify(fiche.episodes, 12));
     })()
   }, [animeId])
   let isMobile = useMediaQuery(`(max-width: ${em(750)})`);
-  if (!anime) return (<div>Chargement...</div>)
   if (!fiche) return (<div>Chargement...</div>)
 
   return (
@@ -115,7 +117,7 @@ function FicheComponent({ animeId }: { animeId: string }) {
                 </Text>
                 <div style={{ height: 15 }} />
                 <Text size="sm" style={{ color: 'white' }}>
-                  {isMobile ? strToUtf8(fiche.synopsis).substring(0, 200) + "..." : strToUtf8(fiche.synopsis)}
+                  {isMobile ? fiche.synopsis.substring(0, 200) + "..." : fiche.synopsis}
                 </Text>
                 <Group right={"xs"} style={{ marginTop: 10 }}>
                   {fiche.genres.map((genre) => (
@@ -132,7 +134,7 @@ function FicheComponent({ animeId }: { animeId: string }) {
                   >{lastEpisode ? "Recommencer" : "Commencer"}</Button>
                   {lastEpisode ? <Button radius={"sm"} style={{
                     marginRight: 10,
-                  }} onClick={() => { window.location.href = ("/anime/" + fiche?.id + "/episode/" + lastEpisode) }}>Reprendre ep {lastEpisode}</Button> : null}
+                  }} onClick={() => { window.location.href = "/anime/" + fiche?.id + "/episode/" + lastEpisode }}>Reprendre ep {lastEpisode}</Button> : null}
                 </Group>
               </GridCol>
               <GridCol span={12}>
@@ -145,9 +147,9 @@ function FicheComponent({ animeId }: { animeId: string }) {
                   onChange={async (ficheid) => {
                     if (!ficheid) return;
                     let fiche = await getFicheAnime(parseInt(ficheid, 10));
+                    if(!fiche) return navigate("/");
                     setFiche(fiche);
                     setPage(1);
-                    setEpisodes(chunkify(fiche.episodes, 12));
                     let latestEpisodeWatched = historyWatched.find(e => e.id == (fiche as FicheAnime).id);
                     if (latestEpisodeWatched) {
                       setLatestEpisode(latestEpisodeWatched.episode);
@@ -164,7 +166,7 @@ function FicheComponent({ animeId }: { animeId: string }) {
       <Grid align="flex-start" justify="center" style={{
         paddingTop: "20px"
       }}>
-        {episodes && episodes[page - 1].map((episode) => (
+        {chunkify(fiche.episodes,20)[page-1].map((episode) => (
           <Paper key={episode.num} onClick={() => navigate("/anime/" + fiche?.id + "/episode/" + episode.num)} style={{ height: "100%", margin: 10 }} radius="sm" >
             <Image src={episode.url_image} radius="sm" w={"23rem"} h={"100%"} />
             <Text size="sm" truncate="end" style={{ color: 'white', fontSize: "0.8rem", fontWeight: "bold", lineHeight: "2rem" }} bg={"rgba(0,0,0,0.5)"}>
@@ -173,7 +175,7 @@ function FicheComponent({ animeId }: { animeId: string }) {
           </Paper>
         ))}
       </Grid>
-      <Pagination total={episodes.length} value={page} onChange={setPage} style={{ marginTop: 20, marginBottom: 20 }} />
+      <Pagination total={chunkify(fiche.episodes,20).length} value={page} onChange={setPage} style={{ marginTop: 20, marginBottom: 20 }} />
     </div>
   )
 }

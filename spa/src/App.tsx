@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Anime, AnimeWatched, Hilhlighted, animes, seasonal, seasonalAnimes } from "./utils/apiFetcher";
+import { Anime, AnimeWatched, getAnimes, seasonal, getSeasonalAnimes, HighLighted } from "./utils/apiFetcher";
 import {  onAuthStateChanged } from "firebase/auth";
 import { analytics, auth, database } from "./utils/database";
 import { chunkify } from "./utils/util";
@@ -30,7 +30,7 @@ const BrowserRouter = createBrowserRouter([
 export default function App() {
   const [seasonal, setSeasonal] = useState<seasonal[][]>([]); 
   const [trendings, setTrendings] = useState<Anime[]>([]);
-  const [hilghted, setHilghted] = useState<Hilhlighted | null>(null);
+  const [hilghted, setHilghted] = useState<HighLighted | null>(null);
   const [historyWatched, setHistoryWatched] = useState<AnimeWatched[]>([]);
   const [animeList, setAnimeList] = useState<Anime[]>([]);
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function App() {
         }
       });
       if(animeList.length <= 0){
-        let aList = await animes();
+        let aList = await getAnimes();
         if(aList.length >= 1){
           setAnimeList(aList);
           logEvent(analytics, 'load_animes', {
@@ -69,7 +69,7 @@ export default function App() {
         }
       }
       if(seasonal.length <= 0){
-      let animes = await seasonalAnimes();
+      let animes = await getSeasonalAnimes();
       if(seasonal.length === 0){
               setSeasonal(chunkify(animes,40));
               logEvent(analytics, 'load_seasonal', {

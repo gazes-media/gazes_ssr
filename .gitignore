@@ -1,2 +1,4 @@
 *.exe
 node_modules
+.output
+.vinxi

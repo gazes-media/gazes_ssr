@@ -1,6 +1,6 @@
 import 'vidstack/styles/defaults.css';
 import { MediaOutlet, MediaPlayer, MediaGesture, MediaPoster, MediaBufferingIndicator, MediaTimeSlider, MediaPlayButton, MediaSeekButton, MediaPIPButton, MediaTime, MediaMenu, MediaQualityMenuButton, MediaFullscreenButton, MediaMenuItems, MediaQualityMenuItems, MediaMenuButton, MediaPlaybackRateMenuButton, MediaPlaybackRateMenuItems, MediaMuteButton } from '@vidstack/react';
-import { EpisodeWithVideo, FicheAnime, getEpisodeAnimeId, getFicheAnime, seasonal, seasonalAnimes } from '../utils/apiFetcher';
+import { EpisodeWithVideo, FicheAnime, getEpisodeAnimeId, getFicheAnime, seasonal, getSeasonalAnimes } from '../utils/apiFetcher';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import '../global.css';
@@ -249,12 +249,13 @@ export default function Player() {
 
             if (!episode) {
                 let currentFiche = await getFicheAnime(parseInt(animeId, 10));
+                if (!currentFiche) return navigate("/");
                 setFiche(currentFiche);
                 let episodeToFetch = await getEpisodeAnimeId(parseInt(animeId, 10), parseInt(episodeId, 10));
                 if (!episodeToFetch) return episodeNotFound(animeId, parseInt(episodeId, 10));
                 setEpisode(episodeToFetch);
 
-                let seasons = await seasonalAnimes({
+                let seasons = await getSeasonalAnimes({
                     id: parseInt(animeId, 10)
                 });
                 if (seasons.length > 0) {
@@ -484,6 +485,7 @@ export default function Player() {
                         if (saisonToFetch) {
                             idAnime = saisonToFetch;
                             let ficheToFetch = await getFicheAnime(saisonToFetch);
+                            if (!ficheToFetch) return navigate("/");
                             setFiche(ficheToFetch);
                             let episodeToFetch = await getEpisodeAnimeId(saisonToFetch, nextEpisode);
                             if (!episodeToFetch) return episodeNotFound(saisonToFetch.toString(), nextEpisode);

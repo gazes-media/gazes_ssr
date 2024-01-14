@@ -4,10 +4,10 @@ import { BackgroundImage, Grid, Paper, em, Text, Center, Button, Badge } from "@
 import { useMediaQuery } from "@mantine/hooks";
 import { Link, useLocation } from "react-router-dom";
 import { StoreContext } from "../Context/MainContext";
-import { Anime, LatestEpisode, latest } from "../utils/apiFetcher";
+import { Anime, LatestEpisode, getLatest } from "../utils/apiFetcher";
 import { analytics } from "../utils/database";
 import { getAnimeList, removeAnime } from "../utils/storage";
-import { convertEpisodeToNumber } from "../utils/util";
+import { convertEpisodeToNumber, replaceUrlToGazesURL } from "../utils/util";
 import { logEvent } from "firebase/analytics";
 import { Helmet } from "react-helmet";
 function LatestComponent() {
@@ -25,7 +25,7 @@ function LatestComponent() {
     }, [])
     useEffect(() => {
         (async () => {
-            let last = await latest();
+            let last = await getLatest();
             setlatest(last);
             logEvent(analytics, 'load_latest', {
                 count: last.length
@@ -49,12 +49,12 @@ function LatestComponent() {
                 }}>
                     {historyWatched && historyWatched.map((anime) => {
                         let currentAnime = animes.find(e => e.id == anime.id) as Anime;
-                        let last = LatestEpisode.find(e => e.anime_url == currentAnime.url);
+                        let last = LatestEpisode.find(e => e.title == currentAnime.title);
                         let reduce = last && convertEpisodeToNumber(last.episode) > anime.episode ? 25 : 0;
                         return (
                             <Paper key={anime.id} style={{ height: "100%", width: isLittleMobile ? "8rem" : "10rem", margin: 10 }} radius="sm" >
 
-                                <BackgroundImage src={currentAnime.url_image} radius="sm" onClick={() => window.location.href = "/anime/" + anime.id + "/episode/" + anime.episode}>
+                                <BackgroundImage src={currentAnime.url_image} radius="sm" onClick={() => window.location.href = replaceUrlToGazesURL(currentAnime.url, String(anime.episode))}>
                                     {last && convertEpisodeToNumber(last.episode) > anime.episode && <Badge style={{ position: "relative", top: 0, right: 0 }} color="red">Nouveau</Badge>}
                                     <div style={{ height: (isLittleMobile ? 150 : 180) - reduce }} />
                                     <Text size="sm" truncate="end" style={{ color: 'white', fontSize: "0.8rem", fontWeight: "bold", lineHeight: "2rem" }} bg={"rgba(0,0,0,0.5)"}>

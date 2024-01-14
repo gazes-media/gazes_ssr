@@ -1,10 +1,12 @@
+import * as util from "./util";
+
 let fetcher = <T>(uri: string): Promise<T> => {
     return fetch("https://api.gazes.fr/anime"+uri).then((res) => res.json()) as Promise<T>;
 }
 
 export enum statusEnum {
-    ongoing  = 1,
-    inprogress,
+    onGoing  = 1,
+    inProgress,
 }
 
 export enum langEnum {
@@ -93,7 +95,7 @@ export interface ResponseApi<T> {
   }
   
 
-export interface Hilhlighted {
+export interface HighLighted {
     id: number
     title: string
     title_english: string
@@ -211,7 +213,8 @@ export type seasonal = {
     popularity: number
     url: string
     genres: string[]
-    url_image: string
+    url_image: string;
+    upscaledCoverUrl?: string;
     score: string
     start_date_year: string
     nb_eps: string
@@ -229,7 +232,7 @@ export type seasonal = {
     url_image: string
   }
   
-export async function animes(filter?: AnimesFilter): Promise<Anime[]>{
+export async function getAnimes(filter?: AnimesFilter): Promise<Anime[]>{
     let filterBuild = new URLSearchParams();
     if(filter?.year) filterBuild.append("year", filter.year.toString());
     if(filter?.status) filterBuild.append("status", filter.status.toString());
@@ -237,20 +240,24 @@ export async function animes(filter?: AnimesFilter): Promise<Anime[]>{
     if(filter?.lang) filterBuild.append("lang", filter.lang);
     if(filter?.title) filterBuild.append("title", filter.title);
     let res = await fetcher<ResponseApi<Anime[]>>("/animes?"+filterBuild.toString());
+    return res.data.map((anime) => {
+        anime.url = "/anime/"+anime.url.match(new RegExp(/\/(\d+)/,"i"))?.[1];
+        return anime;
+    });
+}
+
+export async function getFeatured() : Promise<HighLighted>{
+    let res = await fetcher<ResponseApi<HighLighted>>("/animes/highlighted");
+    res.data.synopsis = util.htmlToText(res.data.synopsis);
     return res.data;
 }
 
-export async function highlighted() : Promise<Hilhlighted>{
-    let res = await fetcher<ResponseApi<Hilhlighted>>("/animes/highlighted");
-    return res.data;
-}
-
-export async function trends(): Promise<Anime[]>{
+export async function getTrends(): Promise<Anime[]>{
     let res = await fetcher<Anime[]>("/animes/trends");
     return res;
 }
 
-export async function seasonalAnimes(props?:{
+export async function getSeasonalAnimes(props?:{
   title?: string,
   id?: number
   page?: number
@@ -265,10 +272,12 @@ export async function seasonalAnimes(props?:{
     return res.data;
 }
 
-export async function latest(): Promise<LatestEpisode[]>{
+export async function getLatest(): Promise<LatestEpisode[]>{
     let res = await fetcher<ResponseApi<LatestEpisode[]>>("/animes/latest");
-    return res.data;
-
+    return res.data.map((episode) => {
+        episode.url = util.replaceUrlToGazesURL(episode.anime_url, episode.episode);
+        return episode;
+    });
 }
 
 export async function getEpisodeAnimeId(animeId: number, episode: number){
@@ -278,5 +287,18 @@ export async function getEpisodeAnimeId(animeId: number, episode: number){
 
 export async function getFicheAnime(animeId: number){
     let res = await fetcher<ResponseApi<FicheAnime>>("/animes/"+animeId);
-    return res.data;
+    
+    if(res.success){
+        res.data.synopsis = util.htmlToText(res.data.synopsis);
+        return {
+            ...res.data,
+            upscaledCoverUrl: util.upscaleImage(res.data.url_image),
+            episodes: res.data.episodes.map((episode) => {
+                episode.url = util.replaceUrlToGazesURL(res.data.url, episode.episode);
+                return episode;
+            })
+        }
+    }else{
+        return undefined;
+    }
 }

@@ -1,6 +1,6 @@
 import { BackgroundImage, Box, Paper, em, Text, Divider, Grid, GridCol, Group, Button, Flex } from "@mantine/core";
 import { useContext, useEffect } from "react";
-import { highlighted, trends as trendings } from "../utils/apiFetcher";
+import { getFeatured, getTrends } from "../utils/apiFetcher";
 import { useMediaQuery } from "@mantine/hooks";
 import { Carousel } from '@mantine/carousel';
 import { spliceText } from "../utils/util";
@@ -26,9 +26,9 @@ function Main() {
   useEffect(() => {
     (async () => {
       if (!highlight) {
-        let banner = await highlighted();
+        let banner = await getFeatured();
         setHighlight(banner);
-        let trendsAnimes = await trendings();
+        let trendsAnimes = await getTrends();
         setTrends(trendsAnimes);
         logEvent(analytics, 'load_highlight', {
           count: 1

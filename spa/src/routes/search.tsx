@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from "react";
-import { seasonalAnimes } from "../utils/apiFetcher";
+import { Anime, getAnimes } from "../utils/apiFetcher";
 import AnimeList from "../components/AnimeList";
 import { Flex, Input } from "@mantine/core";
 import Shell from "../components/Shell";
@@ -11,7 +11,8 @@ import { Helmet } from "react-helmet";
 import { logEvent } from "firebase/analytics";
 import { analytics } from "../utils/database";
 function SearchComponent() {
-    const {seasonal, setSeasonal} = useContext(StoreContext);
+    const {animes } = useContext(StoreContext);
+    const [anime, setAnimes] = useState<Anime[][]>(chunkify(animes,40));
     const [search, setSearch] = useState<string>("");
     const navigate = useNavigate();
     const [error, setError] = useState<string>("");
@@ -27,18 +28,20 @@ function SearchComponent() {
     useEffect(() => {
         (async () => {
             if (search.length > 0) {
-                let animes = await seasonalAnimes({
+                let animes = await getAnimes({
                     title: search
                 });
                 if (animes.length > 0) {
-                    setSeasonal(chunkify(animes,40));
+                    setAnimes(chunkify(animes,40));
                 } else {
                     setError("Aucun anime trouvé");
                 }
             }else{
-                let animes = await seasonalAnimes();
-                if(seasonal.length === 0){
-                    setSeasonal(chunkify(animes,40));
+                let animes = await getAnimes();
+                if (animes.length > 0) {
+                    setAnimes(chunkify(animes,40));
+                } else {
+                    setError("Aucun anime trouvé");
                 }
             }
         })()
@@ -64,7 +67,7 @@ function SearchComponent() {
             />
             </Flex>
             {error && <div>{error}</div>}
-            {seasonal.length > 0 && <AnimeList animes={seasonal} navigator={navigate} />}
+            {anime.length > 0 && <AnimeList animes={anime} navigator={navigate} />}
         </div>
     )
 }
