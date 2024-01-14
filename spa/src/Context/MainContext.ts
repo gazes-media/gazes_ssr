@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { Anime, AnimeWatched, Hilhlighted, seasonal } from "../utils/apiFetcher";
+import { Anime, AnimeWatched, HighLighted, seasonal } from "../utils/apiFetcher";
 
 type StoreContextType = {
     seasonal: seasonal[][];
@@ -8,8 +8,8 @@ type StoreContextType = {
     setTrends: (trends: Anime[]) => void;
     animes: Anime[];
     setAnimes: (animes: Anime[]) => void;
-    highlight: Hilhlighted|null;
-    setHighlight: (highlight: Hilhlighted) => void;
+    highlight: HighLighted|null;
+    setHighlight: (highlight: HighLighted) => void;
     historyWatched: AnimeWatched[];
     setHistoryWatched: (historyWatched: AnimeWatched[]) => void;
 }
@@ -21,7 +21,7 @@ export const StoreContext = createContext<StoreContextType>({
     setTrends: () => {},
     animes: [],
     setAnimes: () => {},
-    highlight: {} as Hilhlighted,
+    highlight: {} as HighLighted,
     setHighlight: () => {},
     historyWatched: [],
     setHistoryWatched: () => {}
